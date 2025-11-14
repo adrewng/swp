@@ -4,7 +4,7 @@ import http from '~/utils/http'
 export const URL_LOGIN = 'api/user/login'
 export const URL_REGISTER = 'api/user/register'
 export const URL_LOGOUT = 'api/user/logout'
-export const URL_REFRESH_TOKEN = 'api/user/refresh-token'
+export const URL_REFRESH_TOKEN = 'refresh-access-token'
 export const URL_UPDATE_PHONE = 'api/user/update-phone'
 
 export const authApi = {

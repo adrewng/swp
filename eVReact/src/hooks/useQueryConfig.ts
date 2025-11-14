@@ -10,23 +10,16 @@ export default function useQueryConfig() {
   const queryConfig: QueryConfig = omitBy(
     {
       page: queryParam.page || '1',
-      limit: queryParam.limit || '12',
+      limit: queryParam.limit || '20',
       sort_by: queryParam.sort_by,
-      title: queryParam.title,
+      exclude: queryParam.exclude,
+      name: queryParam.name,
       order: queryParam.order,
       price_max: queryParam.price_max,
       price_min: queryParam.price_min,
-      power: queryParam.power,
-      mileage: queryParam.mileage,
-      seat: queryParam.seat,
-      health: queryParam.health,
-      voltage: queryParam.voltage,
-      capacity: queryParam.capacity,
+      rating_filter: queryParam.rating_filter,
       category_id: queryParam.category_id,
-      category_type: queryParam.category_type,
-      color: queryParam.color,
-      warranty: queryParam.warranty,
-      status: queryParam.status
+      category_type: queryParam.category_type
     },
     isUndefined
   )

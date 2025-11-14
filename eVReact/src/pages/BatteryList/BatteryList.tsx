@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import Pagination from '~/components/Pagination'
 import PostCard from '~/components/PostCard'
-import { ProductCardSkeleton } from '~/components/skeleton'
+import ProductCardSkeletonLight from '~/components/ProductCardSkeleton/ProductCardSkeleton'
 import SortBar from '~/components/SortBar'
 import { path } from '~/constants/path'
 import { useListQueries } from '~/hooks/useListQueries'
@@ -85,7 +85,7 @@ export default function BatteryList() {
                       className='group'
                     >
                       <div className='flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white'>
-                        <ProductCardSkeleton />
+                        <ProductCardSkeletonLight />
                       </div>
                     </motion.div>
                   ))
@@ -137,7 +137,7 @@ export default function BatteryList() {
                         className='group'
                       >
                         <div className='flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white'>
-                          <ProductCardSkeleton />
+                          <ProductCardSkeletonLight />
                         </div>
                       </motion.div>
                     ))

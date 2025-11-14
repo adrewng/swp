@@ -1,6 +1,0 @@
-export { default as OrderCardSkeleton } from './OrderCardSkeleton'
-export { default as PostCardSkeleton } from './PostCardSkeleton'
-export { default as ProductCardSkeleton } from './ProductCardSkeleton'
-export { default as ProfileSkeleton } from './ProfileSkeleton'
-export { default as TableSkeleton } from './TableSkeleton'
-export { default as TransactionSkeleton } from './TransactionSkeleton'

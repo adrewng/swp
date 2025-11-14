@@ -1,26 +1,17 @@
 import type { CategoryChild, CategoryType } from './category.type'
 import type { User } from './user.type'
 
-export interface PostType {
+export interface PostDetailType {
   id: number
   title: string
   priority: number
   created_at: string
   updated_at: string
-  isFavorite?: boolean
   product: VehicleType | BatteryType
   end_date?: string
   seller?: User
   reviewer?: User
   reviewed_by?: string
-  status?: string
-  allow_resubmit?: boolean
-  status_verify?: string
-  favorite_at?: string
-  ai?: {
-    min_price: number
-    max_price: number
-  }
 }
 
 export interface VehicleType {
@@ -34,14 +25,11 @@ export interface VehicleType {
   category: CategoryChild
   mileage: string // số km đã đi
   year: number // đời xe
-  seats: number | string // số chỗ ngồi
+  seats: number // số chỗ ngồi
   image: string // ảnh bìa
   images: string[] // danh sách ảnh chi tiết,
   warranty: string // bảo hành
-  color: string // màu sắc,
-  health: string
-  rejected_reason?: string
-  previousOwners?: number
+  color: string // màu sắc
 }
 
 export interface BatteryType {
@@ -59,11 +47,26 @@ export interface BatteryType {
   image: string
   images: string[]
   warranty: string // bảo hành
-  color: string // màu sắc
-  rejected_reason?: string
-  previousOwners?: number
 }
 
+export interface PostType {
+  id: number
+  title: string
+  description: string
+  created_at: string
+  updated_at: string
+  priority: number
+  product: {
+    brand: string
+    model: string
+    year: number
+    price: string
+    address: string
+    images: string[]
+    image: string
+    category: CategoryChild
+  }
+}
 export interface PostListType {
   posts: PostType[]
   pagination: {
@@ -71,95 +74,18 @@ export interface PostListType {
     limit: number
     page_size: number
   }
-  count?: {
-    all?: number
-    pending?: number
-    approved?: number
-    rejected?: number
-    auctioning?: number
-    auctioned?: number
-    sold?: number
-    banned?: number
-  }
-}
-export interface FavNavData {
-  items: PostType[]
-  isLoading: boolean
-  isFetching: boolean
-  total?: number
 }
 
-export type PostStatus = 'pending' | 'approved' | 'rejected' | 'auctioning' | 'auctioned' | 'sold' | 'banned'
 export interface ProductListConfig {
   page?: number | string
   limit?: number | string
-  color?: string
-  title?: string
-  warranty?: string
-  sort_by?: 'recommend' | 'price' | 'created_at'
+  sort_by?: 'createdAt' | 'view' | 'sold' | 'price'
   order?: 'asc' | 'desc'
   exclude?: string
-  power?: string
-  mileage?: string
-  seat?: string
-  health?: string
-  voltage?: string
-  capacity?: string
+  rating_filter?: number | string
   price_max?: number | string
   price_min?: number | string
+  name?: string
   category_type?: Omit<CategoryType, 'notFound' | 'all'>
   category_id?: string
-  status?:
-    | Extract<PostStatus, 'pending' | 'approved' | 'rejected' | 'auctioning' | 'auctioned' | 'sold' | 'banned'>
-    | 'all'
-  // status_verify?: Extract<PostStatus, 'verifying' | 'verified' | 'unverified'>
-}
-
-export interface PostOverView {
-  id: number
-  title: string
-  product: {
-    price: string
-    image: string
-  }
-}
-
-export interface RelatedPost {
-  id: number
-  title: string
-  price: string
-  brand: string
-  model: string
-  year: number
-  address: string
-  status: string
-  category_name: string
-  category_type: string
-  image: string
-  similarity_score: number
-  seller: {
-    id: number
-    name: string
-    rating: number
-  }
-  created_at: string
-}
-
-export interface RelatedPostList {
-  current_product: {
-    id: number
-    category_id: number
-    price: number | string
-  }
-  total: number
-  related_posts: RelatedPost[]
-}
-
-export interface PostStats {
-  total_post: number
-  vehicle_post: number
-  battery_post: number
-  pending_post: number
-  approved_post: number
-  rejected_post: number
 }

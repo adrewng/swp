@@ -2,25 +2,24 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import categoryApi from '~/apis/categories.api'
 import postApi from '~/apis/post.api'
 import serviceApi from '~/apis/service.api'
 import Button from '~/components/Button'
 import Input from '~/components/Input'
 import Popover from '~/components/Popover'
+import { useFormPersist } from '~/hooks/useFormPersist'
 import useQueryParam from '~/hooks/useQueryParam'
 import { getPostSchema, type PostFormValues } from '~/schemas/post.schema'
 import { CategoryType, type CategoryChild } from '~/types/category.type'
 import type { Service } from '~/types/service.type'
-import { formatNumberToSocialStyle, isAxiosPaymentRequiredError, sameFile } from '~/utils/util'
+import { formatNumberToSocialStyle } from '~/utils/util'
 import AddressModal from './components/AddressModal'
 import BatteryForm from './components/BatteryForm'
 import CategoryModal from './components/CategoryModal'
 import VehicleForm from './components/VehicleForm'
-
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
-import { path } from '~/constants/path'
 
 const PostPage = () => {
   const [showCategoryModal, setShowCategoryModal] = useState(true)
@@ -38,7 +37,7 @@ const PostPage = () => {
     defaultValues: {
       title: '',
       description: '',
-      price: 500000,
+      price: 0,
       address: '',
       brand: '',
       images: [],
@@ -54,6 +53,10 @@ const PostPage = () => {
     setValue,
     formState: { errors }
   } = methods
+  const { saveNow, clear, isRestored } = useFormPersist(methods, {
+    storageKeyBase: 'draft:post',
+    partitionKey: selectedCategory?.typeSlug
+  })
 
   const { data: categoriesData, isLoading } = useQuery({
     queryKey: ['categoriesDetail'],
@@ -72,8 +75,33 @@ const PostPage = () => {
   })
 
   const services = useMemo(() => serviceData?.data.data.services ?? [], [serviceData])
+  const allCategories = useMemo(() => categoriesData?.data.data || [], [categoriesData])
+  const watchedCategoryId = watch('category_id')
+  const watchedServiceId = watch('service_id')
   const addressValue = watch('address') ?? ''
   const uploadedImages = watch('images', [] as File[])
+  // Restore selectedCategory khi category_id thay đổi
+  useEffect(() => {
+    if (isRestored && allCategories.length > 0 && watchedCategoryId && !selectedCategory) {
+      const categoryParent = allCategories.find((item) =>
+        item.childrens?.find((child) => child.id === watchedCategoryId)
+      )
+      const category = categoryParent?.childrens?.find((child) => child.id === watchedCategoryId)
+      if (category) {
+        setSelectedCategory(category)
+        setShowCategoryModal(false)
+      }
+    }
+  }, [isRestored, allCategories, watchedCategoryId, selectedCategory])
+  // Restore selectedService khi service_id thay đổi
+  useEffect(() => {
+    if (isRestored && services.length > 0 && watchedServiceId && !selectedService) {
+      const service = services.find((s) => s.id === watchedServiceId)
+      if (service) {
+        setSelectedService(service)
+      }
+    }
+  }, [isRestored, services, watchedServiceId, selectedService])
 
   useEffect(() => {
     if (selectedCategory) {
@@ -84,6 +112,7 @@ const PostPage = () => {
 
   const handleCategorySelect = (category: CategoryChild) => {
     if (selectedCategory && selectedCategory.id !== category.id) {
+      clear()
       methods.reset()
       setSelectedService(null)
     }
@@ -102,53 +131,36 @@ const PostPage = () => {
       return true
     })
     const next = merged.slice(0, 6)
-    setValue('images', next, { shouldValidate: true })
-    setValue('image', next[0], { shouldValidate: true })
-    e.currentTarget.value = ''
-  }
 
-  const makeCover = (idx: number) => {
-    const arr = (getValues('images') ?? []) as File[]
-    if (idx <= 0 || idx >= arr.length) return
-
-    const item = arr[idx]
-    // Nếu phần tử đầu đã là item thì thôi
-    if (sameFile(arr[0], item)) return
-
-    const next = [item, ...arr.slice(0, idx), ...arr.slice(idx + 1)].slice(0, 6)
-    setValue('images', next, { shouldValidate: true })
-    setValue('image', next[0], { shouldValidate: true })
+    setValue('images', next, { shouldValidate: true, shouldDirty: true })
+    setValue('image', next[0], { shouldValidate: true, shouldDirty: true })
+    e.currentTarget.value = '' // để lần sau chọn lại cùng file vẫn onChange
   }
 
   const removeImage = (i: number) => {
     const curr = getValues('images') ?? []
     const next = curr.filter((_, idx) => idx !== i)
-    setValue('images', next, { shouldValidate: true })
-    setValue('image', next[0], { shouldValidate: true })
+    setValue('images', next, { shouldValidate: true, shouldDirty: true })
+    setValue('image', next[0], { shouldValidate: true, shouldDirty: true })
   }
 
   // Handle address
   const handleAddressConfirm = (address: string) => {
-    setValue('address', address, { shouldValidate: true })
+    setValue('address', address, { shouldValidate: true, shouldDirty: true })
   }
 
   const onSubmit = handleSubmit((data) => {
+    saveNow()
     addPostMutation.mutate(data, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        await clear()
         toast.success('Đăng tin thành công')
-        navigate(path.home)
-      },
-      onError: (error) => {
-        if (isAxiosPaymentRequiredError<{ checkoutUrl: string }>(error)) {
-          const url = error.response?.data?.checkoutUrl
-          if (typeof url === 'string' && /^https?:\/\//.test(url)) {
-            window.location.replace(url)
-          }
-        }
+        navigate('/post?draft=true')
       }
     })
   })
 
+  if (!isRestored) return null
   return (
     <>
       {showCategoryModal && (
@@ -218,71 +230,41 @@ const PostPage = () => {
                           <p className='text-xs text-red-600 mt-2'>{errors.images.message as string}</p>
                         )}
                       </div>
-                      <div className='grid grid-cols-3 gap-2'>
-                        {uploadedImages.map((f, index) => (
-                          <div key={`${f.name}-${f.size}-${f.lastModified}`} className='relative group'>
-                            {/* Khung ảnh */}
-                            <div className='aspect-square rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50'>
-                              <img
-                                src={URL.createObjectURL(f)}
-                                alt={`Upload ${index + 1}`}
-                                className='w-full h-full object-cover'
-                                draggable={false}
-                              />
 
-                              {/* Error strip (nếu có) */}
-                              {errors.images?.[index]?.message && (
-                                <div className='absolute inset-x-0 bottom-0 px-2 py-1 text-[11px] bg-red-600/90 text-white'>
-                                  {String(errors.images?.[index]?.message)}
+                      {uploadedImages.length > 0 && (
+                        <div className='space-y-3'>
+                          <div className='flex items-center justify-between'>
+                            <h4 className='text-sm font-medium text-zinc-700'>Hình ảnh đã chọn</h4>
+                            <span className='text-xs text-zinc-500'>{uploadedImages.length}/6</span>
+                          </div>
+                          <div className='grid grid-cols-3 gap-2'>
+                            {uploadedImages.map((image, index) => (
+                              <div
+                                key={`${image.name}-${image.size}-${image.lastModified}-${index}`}
+                                className='relative group'
+                              >
+                                <div className='aspect-square rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50'>
+                                  <img
+                                    src={URL.createObjectURL(image)}
+                                    alt={`Upload ${index + 1}`}
+                                    className='w-full h-full object-cover'
+                                  />
                                 </div>
-                              )}
-
-                              {/* Overlay Đặt làm bìa - chỉ hiện khi hover và index != 0 */}
-                              {index !== 0 && (
+                                <div className='absolute top-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded-full font-medium'>
+                                  {index === 0 ? 'Ảnh bìa' : index + 1}
+                                </div>
                                 <button
                                   type='button'
-                                  onClick={() => makeCover(index)}
-                                  className='absolute inset-0 z-10 flex items-center justify-center
-                       bg-black/0 opacity-0 group-hover:opacity-100 group-hover:bg-black/40
-                       transition-opacity duration-200'
-                                  aria-label='Đặt làm bìa'
-                                  title='Đặt làm bìa'
+                                  onClick={() => removeImage(index)}
+                                  className='absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100'
                                 >
-                                  <span className='px-3 py-1.5 rounded-lg bg-white/90 text-black text-xs font-medium shadow'>
-                                    Đặt làm ảnh bìa
-                                  </span>
+                                  ×
                                 </button>
-                              )}
-                            </div>
-
-                            {/* Badge góc trái: “Ảnh bìa” / số thứ tự */}
-                            <div className='absolute top-1 left-1 z-20'>
-                              <span
-                                className={`px-1.5 py-0.5 rounded-full text-[11px] font-medium ${
-                                  index === 0
-                                    ? 'bg-black/80 text-white'
-                                    : 'bg-black/60 text-white opacity-0 group-hover:opacity-100'
-                                }`}
-                              >
-                                {index === 0 ? 'Ảnh bìa' : index + 1}
-                              </span>
-                            </div>
-
-                            {/* Nút Xóa */}
-                            <button
-                              type='button'
-                              onClick={() => removeImage(index)}
-                              className='absolute top-1 right-1 z-20 bg-red-500 text-white rounded-full w-5 h-5
-                   flex items-center justify-center text-xs hover:bg-red-600 transition
-                   opacity-0 group-hover:opacity-100'
-                              aria-label='Xóa ảnh'
-                              title='Xóa ảnh'
-                            >
-                              ×
-                            </button>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -313,7 +295,7 @@ const PostPage = () => {
                       <Input
                         label='Địa chỉ *'
                         name='address'
-                        value={addressValue}
+                        value={addressValue} // ⬅️ lấy từ form, hỗ trợ khôi phục
                         readOnly
                         placeholder='Chọn địa chỉ'
                         errorMsg={errors.address?.message as string}
@@ -386,7 +368,7 @@ const PostPage = () => {
                                   }`}
                                   onClick={() => {
                                     setSelectedService(service)
-                                    setValue('service_id', service.id, { shouldValidate: true })
+                                    setValue('service_id', service.id, { shouldValidate: true, shouldDirty: true })
                                   }}
                                 >
                                   <div className='flex items-center justify-between mb-2'>
@@ -444,8 +426,6 @@ const PostPage = () => {
                       <Button
                         type='submit'
                         className='w-full bg-gradient-to-r from-black to-zinc-800 text-white px-6 py-4 rounded-2xl hover:from-zinc-800 hover:to-zinc-700 transition-all text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105'
-                        isLoading={addPostMutation.isPending}
-                        disabled={addPostMutation.isPending}
                       >
                         Đăng tin
                       </Button>

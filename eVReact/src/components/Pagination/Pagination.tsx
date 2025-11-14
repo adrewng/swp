@@ -6,7 +6,7 @@ import type { QueryConfig } from '~/hooks/useQueryConfig'
 interface Props {
   queryConfig: QueryConfig
   pageSize: number
-  pathName?: (typeof path)['vehicle' | 'battery' | 'home']
+  pathName: (typeof path)['vehicle' | 'battery' | 'home']
 }
 
 const RANGE = 2
@@ -91,7 +91,7 @@ export default function Pagination({ queryConfig, pageSize, pathName }: Props) {
           }}
           className='mx-2 cursor-pointer rounded border bg-white px-3 py-2  shadow-sm'
         >
-          Trước
+          Prev
         </Link>
       )}
 
@@ -109,7 +109,7 @@ export default function Pagination({ queryConfig, pageSize, pathName }: Props) {
           }}
           className='mx-2 cursor-pointer rounded border bg-white px-3 py-2  shadow-sm'
         >
-          Sau
+          Next
         </Link>
       )}
     </div>

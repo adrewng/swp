@@ -122,6 +122,8 @@ export default function AddressModal({ onClose, onConfirm, defaultAddress }: Add
     if (fullAddress.trim()) {
       onConfirm(fullAddress)
       onClose()
+    } else {
+      console.error('No address generated!')
     }
   }
 

@@ -6,7 +6,6 @@ interface AppContextInterface {
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
   profile: User | null
   setProfile: React.Dispatch<React.SetStateAction<User | null>>
-  reset: () => void
 }
 
 const getInitialAppContext: () => AppContextInterface = () => {
@@ -14,8 +13,7 @@ const getInitialAppContext: () => AppContextInterface = () => {
     isAuthenticated: Boolean(getAccessTokenFromLS()),
     setIsAuthenticated: () => null,
     profile: getProfileFromLS(),
-    setProfile: () => null,
-    reset: () => null
+    setProfile: () => null
   }
 }
 const initialAppContext = getInitialAppContext()
@@ -31,12 +29,9 @@ export default function AppProvider({
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(defaultValue.isAuthenticated)
   const [profile, setProfile] = useState<User | null>(defaultValue.profile)
-  const reset = () => {
-    setIsAuthenticated(false)
-    setProfile(null)
-  }
+
   return (
-    <AppContext.Provider value={{ isAuthenticated, setIsAuthenticated, profile, setProfile, reset }}>
+    <AppContext.Provider value={{ isAuthenticated, setIsAuthenticated, profile, setProfile }}>
       {children}
     </AppContext.Provider>
   )

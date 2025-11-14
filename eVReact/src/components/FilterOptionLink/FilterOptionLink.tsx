@@ -34,21 +34,20 @@ export default function FilterOptionLink<K extends FilterKey>({
   const isActive = paramValue === value
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault()
+    const newQueryConfig: QueryConfig = {
+      ...queryConfig,
+      page: '1'
+    }
+
     if (!isActive) {
-      queryConfig[param] = value
+      newQueryConfig[param] = value
     }
 
     if (isActive) {
-      delete queryConfig[param]
+      delete newQueryConfig[param]
     }
 
-    const search = hide
-      ? ''
-      : new URLSearchParams({
-          ...queryConfig,
-          page: '1'
-        }).toString()
-
+    const search = hide ? '' : new URLSearchParams(newQueryConfig).toString()
     // const search = new URLSearchParams(newQueryConfig).toString()
     navigate({ pathname: pathName, search })
   }
@@ -88,9 +87,7 @@ export default function FilterOptionLink<K extends FilterKey>({
       </span>
 
       {/* Right Badge */}
-      {rightBadge !== -1 && (
-        <span className='px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full'>{rightBadge}</span>
-      )}
+      <span className='px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full'>{rightBadge}</span>
     </button>
   )
 }

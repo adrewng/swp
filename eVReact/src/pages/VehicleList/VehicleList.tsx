@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import Pagination from '~/components/Pagination'
 import PostCard from '~/components/PostCard'
-import { ProductCardSkeleton } from '~/components/skeleton'
+import ProductCardSkeletonLight from '~/components/ProductCardSkeleton/ProductCardSkeleton'
 import SortBar from '~/components/SortBar'
 import { path } from '~/constants/path'
 import { useListQueries } from '~/hooks/useListQueries'
@@ -44,10 +44,13 @@ export default function VehicleList() {
           >
             {/* Sticky wrapper: dính dưới header/sortbar ~0rem (top-0) */}
             <div className='sticky top-0 self-start overflow-hidden'>
-              <div className={classNames('w-[22rem]', !isFilterOpen && 'pointer-events-none')}>
-                <VehicleFilter queryConfig={queryConfig} categorySlug={categorySlug} />
+              {/* Nội dung filter dài sẽ tự cuộn trong khung sticky */}
+              <div className='max-h-[calc(100vh-6rem)] overflow-y-auto'>
+                {/* Khi width=0, chặn tương tác */}
+                <div className={classNames('w-[22rem]', !isFilterOpen && 'pointer-events-none')}>
+                  <VehicleFilter queryConfig={queryConfig} categorySlug={categorySlug} />
+                </div>
               </div>
-              {/* </div> */}
             </div>
           </motion.aside>
 
@@ -78,7 +81,7 @@ export default function VehicleList() {
                       className='group'
                     >
                       <div className='flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white'>
-                        <ProductCardSkeleton />
+                        <ProductCardSkeletonLight />
                       </div>
                     </motion.div>
                   ))
@@ -130,7 +133,7 @@ export default function VehicleList() {
                         className='group'
                       >
                         <div className='flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white'>
-                          <ProductCardSkeleton />
+                          <ProductCardSkeletonLight />
                         </div>
                       </motion.div>
                     ))
