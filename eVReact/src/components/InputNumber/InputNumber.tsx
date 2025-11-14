@@ -1,4 +1,4 @@
-import { forwardRef, InputHTMLAttributes, useState } from 'react'
+import { forwardRef, useState, type InputHTMLAttributes } from 'react'
 
 export interface InputNumberProps extends InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string
@@ -24,6 +24,7 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(function Inpu
     const { value } = event.target
     if (/^\d+$/.test(value) || value === '') {
       // Thực thi onChange callback từ bên ngoài truyền vào props
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       onChange && onChange(event)
       // Cập nhật localValue state
       setLocalValue(value)

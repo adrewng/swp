@@ -13,10 +13,11 @@ import './index.css'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnMount: false
+      retry: 1
     }
   }
 })
+
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
   // giảm kích thước lưu trữ

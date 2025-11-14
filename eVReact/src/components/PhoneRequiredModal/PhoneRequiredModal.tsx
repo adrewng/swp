@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useContext } from 'react'
+import { useCallback, useContext, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -9,6 +9,7 @@ import { toast } from 'react-toastify'
 import * as yup from 'yup'
 import { authApi } from '~/apis/auth.api'
 import Button from '~/components/Button'
+import { path } from '~/constants/path'
 import { AppContext } from '~/contexts/app.context'
 import InputNumber from '../InputNumber'
 
@@ -41,10 +42,14 @@ export default function PhoneRequiredModal({ isOpen = false }: PhoneRequiredModa
 
   const { setProfile } = useContext(AppContext)
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     reset({ phone: '' })
-    navigate(-1)
-  }
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate(path.home)
+    }
+  }, [navigate, reset])
 
   const updatePhoneMutation = useMutation({
     mutationFn: (phone: string) => authApi.updatePhone(phone),
@@ -58,6 +63,22 @@ export default function PhoneRequiredModal({ isOpen = false }: PhoneRequiredModa
     updatePhoneMutation.mutate(data.phone)
   }
 
+  // Xử lý ESC key để đóng modal
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen, handleClose])
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -67,6 +88,7 @@ export default function PhoneRequiredModal({ isOpen = false }: PhoneRequiredModa
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50'
+          onClick={handleClose}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -74,6 +96,7 @@ export default function PhoneRequiredModal({ isOpen = false }: PhoneRequiredModa
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className='bg-white rounded-2xl max-w-md w-full shadow-2xl border border-zinc-200'
+            onClick={(e) => e.stopPropagation()}
           >
             <div className='relative p-6 border-b border-zinc-200'>
               <motion.div
@@ -102,14 +125,15 @@ export default function PhoneRequiredModal({ isOpen = false }: PhoneRequiredModa
                 <Controller
                   control={control}
                   name='phone'
-                  render={({ field }) => {
+                  render={({ field, fieldState }) => {
                     return (
                       <InputNumber
                         type='text'
                         className='grow'
                         placeholder='Nhập số điện thoại'
                         classNameInput='p-1 w-full outline-none border border-gray-300 focus:border-gray-500 rounded-sm focus:shadow-sm'
-                        classNameError='hidden'
+                        classNameError='mt-1 text-red-600 min-h-[1.25rem] text-sm'
+                        errorMessage={fieldState.error?.message}
                         {...field}
                       />
                     )

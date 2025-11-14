@@ -13,7 +13,7 @@ interface Props {
 export default function CollapseItem({
   children,
   renderProp,
-  className = 'flex items-center justify-between cursor-pointer w-full select-none',
+  className = 'w-full flex items-center justify-between cursor-pointer select-none',
   as: Element = 'div',
   initialOpen,
   durationMs = 260
@@ -34,7 +34,6 @@ export default function CollapseItem({
       {/* Header */}
       <div role='button' tabIndex={0} onClick={toggle} onKeyDown={onKey} className={className}>
         {children}
-
         {/* Icon */}
         <motion.svg
           xmlns='http://www.w3.org/2000/svg'
@@ -42,7 +41,7 @@ export default function CollapseItem({
           viewBox='0 0 24 24'
           strokeWidth={1.5}
           stroke='currentColor'
-          className='size-6'
+          className='size-6 block'
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: durationMs / 1000, ease: [0.4, 0, 0.2, 1] }}
         >
@@ -58,9 +57,9 @@ export default function CollapseItem({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: durationMs / 1000, ease: [0.4, 0, 0.2, 1] }}
-            className='overflow-hidden'
+            className='overflow-visible'
           >
-            <div className='mt-2 text-sm text-gray-600'>{renderProp}</div>
+            <div className='mt-2 text-sm text-gray-600 w-full'>{renderProp}</div>
           </motion.div>
         )}
       </AnimatePresence>

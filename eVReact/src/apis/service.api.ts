@@ -8,6 +8,9 @@ export const URL_GET_SERVICE_POST = 'api/service/get-by-type/post'
 const serviceApi = {
   getServices(type: Extract<CategoryType, 'vehicle' | 'battery'>) {
     return http.get<SuccessResponse<ServiceList>>(`${URL_GET_SERVICE_POST}/${type}`)
+  },
+  changeCost(serviceId: number, cost: number) {
+    return http.put('/api/service/cost', { serviceId, cost })
   }
 }
 

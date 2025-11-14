@@ -3,14 +3,14 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { path } from '~/constants/path'
-import type { CategoryChild, CategoryDetail } from '~/types/category.type'
+import { CategoryType, type CategoryChild, type CategoryDetail } from '~/types/category.type'
 
 interface CategoryModalProps {
   showCategoryModal: boolean
   onCategorySelect: (category: CategoryChild) => void
   selectedCategory: CategoryChild | null
   onCloseModal: () => void
-  typeSlug?: string // Optional: filter by specific type (vehicle/battery)
+  typeSlug?: string
   categoriesData: CategoryDetail[]
   isLoading: boolean
 }
@@ -133,21 +133,15 @@ export default function CategoryModal({
                       >
                         <div className='flex items-center space-x-3'>
                           <span className='text-2xl'>{type.slug === 'vehicle' ? '🚗' : '🔋'}</span>
-                          <span className='font-medium text-zinc-900'>{type.type}</span>
-                          {type.count && <span className='text-sm text-zinc-500'>({type.count})</span>}
+                          <span className='font-medium text-zinc-900'>
+                            {type.slug === CategoryType.vehicle
+                              ? 'Xe'
+                              : type.slug === CategoryType.battery
+                                ? 'Pin'
+                                : ''}
+                          </span>
+                          <span className='text-sm text-zinc-500'>({type.count ?? 0} sản phẩm)</span>
                         </div>
-                        {type.childrens && type.childrens.length > 0 && (
-                          <motion.svg
-                            animate={{ rotate: expandedCategory === type.slug ? 90 : 0 }}
-                            transition={{ duration: 0.2 }}
-                            className='w-5 h-5 text-zinc-400'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'
-                          >
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                          </motion.svg>
-                        )}
                       </motion.button>
 
                       {/* categories */}

@@ -7,7 +7,7 @@ import type { ProductListConfig } from '~/types/post.type'
 import type { QueryConfig } from './useQueryConfig'
 import useQueryConfig from './useQueryConfig'
 
-const STALE_TIME = 3 * 60 * 1000
+// const STALE_TIME = 3 * 60 * 1000
 
 type Props = { categoryType: CategoryType }
 
@@ -16,8 +16,8 @@ export function useListQueries({ categoryType }: Props) {
   const isAll = categoryType === CategoryType.all
   const categories = useQuery({
     queryKey: ['categories'],
-    queryFn: categoryApi.getCategories,
-    staleTime: STALE_TIME
+    queryFn: categoryApi.getCategories
+    // staleTime: STALE_TIME
   })
 
   // slug của type hoặc '' nếu không tìm thấy
@@ -48,7 +48,8 @@ export function useListQueries({ categoryType }: Props) {
   const posts = useQuery({
     queryKey: ['posts', keyPart, queryConfig],
     queryFn: () => postApi.getPosts(queryConfig as ProductListConfig),
-    staleTime: STALE_TIME,
+    // staleTime: STALE_TIME,
+    refetchOnMount: 'always',
     placeholderData: keepPreviousData,
     enabled: isAll || !!categorySlug // Nếu là all hoặc categorySlug thì mới call api
   })

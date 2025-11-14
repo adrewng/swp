@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type InputHTMLAttributes } from 'react'
 
 interface SelectOption {
-  value: string
+  value: string | number
   label: string
 }
 
@@ -35,7 +35,7 @@ export default function SelectDropdown({
 
   // Fallback nếu value là undefined hoặc null
   const displayValue = value || ''
-  const displaySelectedOption = options.find((o) => o.value === displayValue)
+  const displaySelectedOption = options.find((o) => o.value == displayValue)
 
   // đóng khi click ra ngoài
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function SelectDropdown({
               <button
                 key={option.value}
                 type='button'
-                onClick={() => handleOptionSelect(option.value)}
+                onClick={() => handleOptionSelect(String(option.value))}
                 className={`w-full px-4 py-3 text-left text-sm hover:bg-zinc-50 transition-colors first:rounded-t-2xl last:rounded-b-2xl ${
                   displayValue === option.value ? 'bg-zinc-100 text-black font-medium' : 'text-zinc-700'
                 }`}

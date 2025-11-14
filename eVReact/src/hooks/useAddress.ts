@@ -25,9 +25,9 @@ export const useAddress = () => {
       try {
         const data = await addressApi.getProvinces()
         setProvinces(data)
-      } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) {
         setError('Không thể tải danh sách tỉnh/thành phố')
-        console.error('Error loading provinces:', err)
       } finally {
         setLoading(false)
       }
@@ -45,9 +45,9 @@ export const useAddress = () => {
     try {
       const data = await addressApi.getWardsByProvince(provinceCode)
       setWards(data) // Reset wards when province changes
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
       setError('Không thể tải danh sách phường/xã')
-      console.error('Error loading wards:', err)
     } finally {
       setLoading(false)
     }

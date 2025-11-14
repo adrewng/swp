@@ -1,6 +1,12 @@
 import { Controller, useFormContext } from 'react-hook-form'
 import SelectDropdown from '~/components/SelectDropdown'
-import { BATTERY_HEALTH_OPTIONS, CAPACITY_OPTIONS, VOLTAGE_OPTIONS, WARRANTY_OPTIONS } from '~/constants/options'
+import {
+  BATTERY_HEALTH_OPTIONS,
+  CAPACITY_OPTIONS,
+  COLOR_OPTIONS,
+  VOLTAGE_OPTIONS,
+  WARRANTY_OPTIONS
+} from '~/constants/options'
 import type { PostFormValues } from '~/schemas/post.schema'
 import InputStyle from '../InputStyle'
 
@@ -78,27 +84,6 @@ export default function BatteryForm() {
             />
           )}
         />
-        <InputStyle
-          label='Năm sản xuất'
-          name='year'
-          type='number'
-          placeholder='Nhập năm sản xuất'
-          register={register}
-          errorMsg={errors.year?.message}
-        />
-      </div>
-
-      {/* Row 4: Giá bán & Bảo hành */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <InputStyle
-          label='Giá bán *'
-          name='price'
-          type='number'
-          placeholder='Nhập giá bán'
-          register={register}
-          errorMsg={errors.price?.message}
-        />
-
         <Controller
           name='warranty'
           control={control}
@@ -111,6 +96,51 @@ export default function BatteryForm() {
               {...field}
             />
           )}
+        />
+      </div>
+
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <InputStyle
+          label='Đời chủ'
+          name='previousOwners'
+          type='number'
+          placeholder='Nhập số đời chủ'
+          register={register}
+          errorMsg={errors.previousOwners?.message}
+        />
+
+        {/* Màu sắc */}
+        <Controller
+          name='color'
+          control={control}
+          render={({ field, fieldState }) => (
+            <SelectDropdown
+              label='Màu sắc'
+              options={COLOR_OPTIONS}
+              placeholder='Chọn màu sắc'
+              errorMsg={fieldState.error?.message}
+              {...field}
+            />
+          )}
+        />
+      </div>
+      {/* Row 4: Giá bán & Bảo hành */}
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <InputStyle
+          label='Giá bán *'
+          name='price'
+          type='number'
+          placeholder='Nhập giá bán'
+          register={register}
+          errorMsg={errors.price?.message}
+        />
+        <InputStyle
+          label='Năm sản xuất'
+          name='year'
+          type='number'
+          placeholder='Nhập năm sản xuất'
+          register={register}
+          errorMsg={errors.year?.message}
         />
       </div>
     </div>

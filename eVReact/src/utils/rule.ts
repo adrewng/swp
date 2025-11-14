@@ -28,4 +28,16 @@ export const schema = yup.object({
     .oneOf([yup.ref('password')], 'Nhập lại mật khẩu không khớp')
 })
 
+export const userSchema = yup.object({
+  full_name: yup.string().max(160, 'Độ dài tối đa là 160 kí tự'),
+  phone: yup.string().max(10, 'Độ dài tối đa là 10 kí tự'),
+  email: yup.string().max(160, 'Độ dài tối đa là 160 kí tự'),
+  avatar: yup.string().max(1000, 'Độ dài tối đa là 1000 kí tự'),
+  address: yup.string().max(1000, 'Độ dài tối đa là 1000 kí tự'),
+  password: schema.fields['password'],
+  new_password: schema.fields['password'],
+  confirm_password: schema.fields['confirm_password']
+})
+export type UserSchema = yup.InferType<typeof userSchema>
+
 export type Schema = yup.InferType<typeof schema>

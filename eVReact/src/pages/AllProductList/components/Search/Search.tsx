@@ -9,7 +9,7 @@ export default function Search() {
   const options = ['Recommended', 'Price: Low to High', 'Price: High to Low', 'Newest']
 
   function onSearch() {
-    console.log({ query, sort })
+    // Search functionality
   }
 
   const panel = {

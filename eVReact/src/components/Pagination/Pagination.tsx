@@ -6,7 +6,7 @@ import type { QueryConfig } from '~/hooks/useQueryConfig'
 interface Props {
   queryConfig: QueryConfig
   pageSize: number
-  pathName: (typeof path)['vehicle' | 'battery' | 'home']
+  pathName?: (typeof path)['vehicle' | 'battery' | 'home']
 }
 
 const RANGE = 2
@@ -79,7 +79,7 @@ export default function Pagination({ queryConfig, pageSize, pathName }: Props) {
   return (
     <div className='mt-6 flex flex-wrap justify-center'>
       {page === 1 ? (
-        <span className='mx-2 cursor-not-allowed rounded border bg-white/60 px-3 py-2  shadow-sm'>Prev</span>
+        <span className='mx-2 cursor-not-allowed rounded border bg-white/60 px-3 py-2  shadow-sm'>Trước</span>
       ) : (
         <Link
           to={{
@@ -91,13 +91,13 @@ export default function Pagination({ queryConfig, pageSize, pathName }: Props) {
           }}
           className='mx-2 cursor-pointer rounded border bg-white px-3 py-2  shadow-sm'
         >
-          Prev
+          Trước
         </Link>
       )}
 
       {renderPagination()}
       {page === pageSize ? (
-        <span className='mx-2 cursor-not-allowed rounded border bg-white/60 px-3 py-2  shadow-sm'>Next</span>
+        <span className='mx-2 cursor-not-allowed rounded border bg-white/60 px-3 py-2  shadow-sm'>Sau</span>
       ) : (
         <Link
           to={{
@@ -109,7 +109,7 @@ export default function Pagination({ queryConfig, pageSize, pathName }: Props) {
           }}
           className='mx-2 cursor-pointer rounded border bg-white px-3 py-2  shadow-sm'
         >
-          Next
+          Sau
         </Link>
       )}
     </div>

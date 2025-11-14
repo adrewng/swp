@@ -78,6 +78,7 @@ const StatsCard = ({
 }: {
   title: string
   value: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: React.ComponentType<any>
   change: string
   changeType: 'positive' | 'negative' | 'neutral'
