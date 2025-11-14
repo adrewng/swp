@@ -1,19 +1,19 @@
-import Router from "express";
-import multer from "multer";
+import Router from 'express';
+import multer from 'multer';
 import {
-  changeAndConfirmUserPassword,
-  getUserOrders,
-  getUserPosts,
-  listUsers,
-  login,
-  logout,
-  refreshToken,
-  register,
-  updateUserInfo,
-  updateUserPhone,
-  userDetail,
-} from "../controllers/user.controller";
-import { authenticateToken } from "../middleware/AuthMiddleware";
+	register,
+	login,
+	listUsers,
+	userDetail,
+	refreshToken,
+	logout,
+	updateUserInfo,
+	updateUserPhone,
+	getUserPosts,
+	getUserOrders,
+	changeAndConfirmUserPassword
+} from '../controllers/user.controller';
+import { authenticateToken, authorizeRoles } from '../middleware/AuthMiddleware';
 
 const router = Router();
 const storage = multer.memoryStorage();
@@ -90,7 +90,7 @@ const upload = multer({ storage });
  *                   type: string
  *                   example: "Email đã tồn tại"
  */
-router.post("/register", register);
+router.post('/register', register);
 
 /**
  * @swagger
@@ -182,7 +182,7 @@ router.post("/register", register);
  *                   type: string
  *                   example: "Mật khẩu không đúng"
  */
-router.post("/login", login);
+router.post('/login', login);
 
 /**
  * @swagger
@@ -241,7 +241,7 @@ router.post("/login", login);
  *                   type: string
  *                   example: "Token làm mới không hợp lệ hoặc đã hết hạn"
  */
-router.post("/refresh-token", refreshToken);
+router.post('/refresh-token', refreshToken);
 
 /**
  * @swagger
@@ -276,7 +276,7 @@ router.post("/refresh-token", refreshToken);
  *                   type: string
  *                   example: "Không được phép"
  */
-router.post("/logout", authenticateToken, logout);
+router.post('/logout', authenticateToken, logout);
 
 /**
  * @swagger
@@ -339,7 +339,7 @@ router.post("/logout", authenticateToken, logout);
  *                   type: string
  *                   example: "Lỗi máy chủ nội bộ"
  */
-router.get("/get-all-users", listUsers);
+router.get('/get-all-users', listUsers);
 
 /**
  * @swagger
@@ -420,7 +420,7 @@ router.get("/get-all-users", listUsers);
  *                   type: string
  *                   example: "Lỗi máy chủ nội bộ"
  */
-router.get("/user-detail", userDetail);
+router.get('/user-detail', userDetail);
 
 /**
  * @swagger
@@ -540,14 +540,10 @@ router.get("/user-detail", userDetail);
  *                   type: string
  *                   example: "Lỗi khi tải lên ảnh: Cannot connect to storage"
  */
-router.put(
-  "/update-user",
-  authenticateToken,
-  upload.single("avatar"),
-  updateUserInfo
-);
+router.put('/update-user', authenticateToken, upload.single('avatar'), updateUserInfo);
 
-router.put("/update-phone", authenticateToken, updateUserPhone);
+
+router.put('/update-phone', authenticateToken, updateUserPhone);
 
 /**
  * @swagger
@@ -719,7 +715,7 @@ router.put("/update-phone", authenticateToken, updateUserPhone);
  *                   type: string
  *                   example: "Lỗi khi lấy danh sách bài đăng"
  */
-router.get("/user-posts", authenticateToken, getUserPosts);
+router.get('/user-posts', authenticateToken, getUserPosts);
 
 /**
  * @swagger
@@ -813,7 +809,7 @@ router.get("/user-posts", authenticateToken, getUserPosts);
  *       422:
  *         description: Lỗi xử lý hoặc truy vấn cơ sở dữ liệu
  */
-router.get("/order-by-user", authenticateToken, getUserOrders);
+router.get('/order-by-user', authenticateToken, getUserOrders);
 
 /**
  * @swagger
@@ -863,6 +859,6 @@ router.get("/order-by-user", authenticateToken, getUserOrders);
  *       422:
  *         description: Mật khẩu không đúng hoặc xác nhận không khớp
  */
-router.put("/change-password", authenticateToken, changeAndConfirmUserPassword);
+router.put('/change-password', authenticateToken, changeAndConfirmUserPassword);
 
 export default router;
