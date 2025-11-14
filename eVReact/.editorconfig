@@ -1,0 +1,5 @@
+# cấu hình các config đồng bộ giữa các editor với nhau nếu dự án có nhiều người tham gia.
+# Phải cài EditorConfig for VS Code thì vscode mới hiểu
+[*]                # Áp dụng cho tất cả các file trong project
+indent_size = 2    # Mỗi cấp thụt lề = 2 khoảng trắng
+indent_style = space  # Dùng space thay vì tab để thụt lề

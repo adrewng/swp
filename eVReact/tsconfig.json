@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
+  "compilerOptions": {
+    //Việc thông báo này chỉ báo ở cấp độ ts thui, còn phải khai báo cho vscode và vite (terminal -quan trọng nhất)
+    "baseUrl": ".", //Báo rằng thư mục gốc là thư mục chứa file này (thư mục evReact - project)
+    "paths": {
+      "~/*": ["src/*"] //tạo một alias thông báo rằng '~' sẽ tương ứng với project/src
+    }
+  }
+}
