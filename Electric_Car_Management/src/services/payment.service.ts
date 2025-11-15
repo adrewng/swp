@@ -6,7 +6,7 @@ import { detectPaymentMethod } from '../utils/parser';
 import { title } from 'process';
 import * as notificationService from './notification.service';
 import { sendNotificationToUser } from '../config/socket';
-import { toMySQLDateTime } from '../utils/datetime';
+import { getVietnamTime, toMySQLDateTime } from '../utils/datetime';
 
 export async function createPayosPayment(payload: Payment) {
 	try {
@@ -161,7 +161,7 @@ export async function processAuctionFeePayment(
 			// Insert vào bảng orders với type = 'auction_fee'
 			const [orderResult]: any = await connection.query(
 				`INSERT INTO orders (type, status, price, buyer_id, code, payment_method, product_id, created_at, service_id, tracking) 
-				 VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)`,
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
 					'auction',
 					'PAID',
@@ -170,8 +170,23 @@ export async function processAuctionFeePayment(
 					orderCode,
 					'CREDIT',
 					productId,
+					getVietnamTime(),
 					17,
 					'VERIFYING',
+				],
+			);
+			console.log(orderResult.insertId);
+
+			// Insert transaction_detail (Decrease credit)
+			await connection.query(
+				`INSERT INTO transaction_detail (order_id, user_id, unit, type, credits) 
+				 VALUES (?, ?, ?, ?, ?)`,
+				[
+					orderResult.insertId,
+					sellerId,
+					'CREDIT',
+					'Decrease',
+					auctionFee,
 				],
 			);
 
@@ -230,7 +245,7 @@ export async function processAuctionFeePayment(
 			// Tạo order với status PENDING
 			const [orderResult]: any = await connection.query(
 				`INSERT INTO orders (type, status, price, buyer_id, code, payment_method, product_id, created_at, service_id, tracking) 
-				VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)`,
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
 					'auction',
 					'PENDING',
@@ -239,6 +254,7 @@ export async function processAuctionFeePayment(
 					orderCode.toString(),
 					'PAYOS',
 					productId,
+					getVietnamTime(),
 					17,
 					'PENDING',
 				],
@@ -505,7 +521,7 @@ export async function processDepositPayment(
 			// Insert vào bảng orders với type = 'deposit'
 			const [orderResult]: any = await connection.query(
 				`INSERT INTO orders (type, status, price, buyer_id, code, payment_method, product_id, created_at, service_id, tracking) 
-				 VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)`,
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
 					'deposit',
 					'PAID',
@@ -514,8 +530,22 @@ export async function processDepositPayment(
 					orderCode,
 					'CREDIT',
 					auction.product_id,
+					getVietnamTime(),
 					18,
 					'AUCTION_PROCESSING',
+				],
+			);
+
+			// Insert transaction_detail (Decrease credit)
+			await connection.query(
+				`INSERT INTO transaction_detail (order_id, user_id, unit, type, credits) 
+				 VALUES (?, ?, ?, ?, ?)`,
+				[
+					orderResult.insertId,
+					buyerId,
+					'CREDIT',
+					'Decrease',
+					depositAmount,
 				],
 			);
 
@@ -571,7 +601,7 @@ export async function processDepositPayment(
 			// Tạo order với status PENDING
 			const [orderResult]: any = await connection.query(
 				`INSERT INTO orders (type, status, price, buyer_id, code, payment_method, product_id, created_at, service_id, tracking) 
-				 VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)`,
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
 					'deposit',
 					'PENDING',
@@ -580,6 +610,7 @@ export async function processDepositPayment(
 					orderCode.toString(),
 					'PAYOS',
 					auction.product_id,
+					getVietnamTime(),
 					18,
 					'PENDING',
 				],
@@ -797,15 +828,12 @@ export async function repaymentPost(orderId: number) {
 			['PAID', 'PROCESSING', updatedAtVN, orderId],
 		);
 
-		await connection.query(`INSERT INTO transaction_detail
+		await connection.query(
+			`INSERT INTO transaction_detail
 		  (user_id, order_id, credits,unit, type)
-		  VALUES (?, ?, ?, ?, ?)`, [
-			order.buyer_id,
-			orderId,
-			orderPrice,
-			'CREDIT',
-			'Decrease'
-		]);
+		  VALUES (?, ?, ?, ?, ?)`,
+			[order.buyer_id, orderId, orderPrice, 'CREDIT', 'Decrease'],
+		);
 
 		await connection.commit();
 		return {

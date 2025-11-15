@@ -1,7 +1,7 @@
 import pool from '../config/db';
 import axios from 'axios';
 import { Contract } from '../models/contract.model';
-import { getVietnamTime } from '../utils/datetime';
+import { toMySQLDateTime } from '../utils/datetime';
 import * as notificationService from './notification.service';
 import { sendNotificationToUser } from '../config/socket';
 
@@ -33,8 +33,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				contract.dispute_city,
 				contract.status,
 				'', // URL DocuSeal sẽ cập nhật sau
-				getVietnamTime(),
-				getVietnamTime(),
+				toMySQLDateTime(),
+				toMySQLDateTime(),
 			],
 		);
 
@@ -230,21 +230,15 @@ export async function handleDocuSealWebhookService(
 				);
 
 				// Decrease winner's credit (trừ tiền cọc của winner)
-				await connection.query(
-					`UPDATE users SET total_credit = total_credit - ? WHERE id = ?`,
-					[depositAmount, buyerId],
-				);
-				console.log(
-					`✅ Winner ${buyerId} credit decreased by ${depositAmount}`,
-				);
+				// await connection.query(
+				// 	`UPDATE users SET total_credit = total_credit - ? WHERE id = ?`,
+				// 	[depositAmount, buyerId],
+				// );
 
 				// Increase seller's credit (cộng tiền cọc cho seller)
 				await connection.query(
 					`UPDATE users SET total_credit = total_credit + ? WHERE id = ?`,
 					[depositAmount, sellerId],
-				);
-				console.log(
-					`✅ Seller ${sellerId} credit increased by ${depositAmount}`,
 				);
 
 				// Get the deposit order for transaction logging
@@ -262,20 +256,20 @@ export async function handleDocuSealWebhookService(
 					const depositOrderId = depositOrderRows[0].id;
 
 					// Insert transaction_detail for winner (Decrease credit)
-					await connection.query(
-						`INSERT INTO transaction_detail (order_id, user_id, unit, type, credits) 
-             VALUES (?, ?, ?, ?, ?)`,
-						[
-							depositOrderId,
-							buyerId,
-							'CREDIT',
-							'Decrease',
-							depositAmount,
-						],
-					);
-					console.log(
-						`💳 Transaction detail logged for winner ${buyerId} (Decrease)`,
-					);
+					// 	await connection.query(
+					// 		`INSERT INTO transaction_detail (order_id, user_id, unit, type, credits)
+					//  VALUES (?, ?, ?, ?, ?)`,
+					// 		[
+					// 			depositOrderId,
+					// 			buyerId,
+					// 			'CREDIT',
+					// 			'Decrease',
+					// 			depositAmount,
+					// 		],
+					// 	);
+					// 	console.log(
+					// 		`💳 Transaction detail logged for winner ${buyerId} (Decrease)`,
+					// 	);
 
 					// Insert transaction_detail for seller (Increase credit)
 					await connection.query(
@@ -297,7 +291,7 @@ export async function handleDocuSealWebhookService(
 				// Cập nhật product status = 'sold'
 				const [productUpdateResult]: any = await connection.query(
 					`UPDATE products SET status = 'sold', updated_at = ? WHERE id = ?`,
-					[getVietnamTime(), productId],
+					[toMySQLDateTime(), productId],
 				);
 
 				console.log(
