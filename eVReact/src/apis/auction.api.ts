@@ -10,6 +10,9 @@ const auctionApi = {
   getAllAuction() {
     return http.get<SuccessResponse<AuctionList>>('/api/auction/get-all')
   },
+  getActiveAuction() {
+    return http.get<SuccessResponse<AuctionList>>('/api/auction/get-all-active')
+  },
   getAuctionByProduct(product_id: number) {
     return http.get<SuccessResponse<Auction>>('/api/auction/get-by-product', {
       params: { product_id }

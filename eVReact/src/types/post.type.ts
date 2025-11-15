@@ -42,6 +42,8 @@ export interface VehicleType {
   health: string
   rejected_reason?: string
   previousOwners?: number
+  capacity?: number
+  voltage?: number
 }
 
 export interface BatteryType {
@@ -79,6 +81,7 @@ export interface PostListType {
     auctioning?: number
     auctioned?: number
     sold?: number
+    expired?: number
     banned?: number
   }
 }
@@ -89,7 +92,15 @@ export interface FavNavData {
   total?: number
 }
 
-export type PostStatus = 'pending' | 'approved' | 'rejected' | 'auctioning' | 'auctioned' | 'sold' | 'banned'
+export type PostStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'auctioning'
+  | 'auctioned'
+  | 'sold'
+  | 'expired'
+  | 'banned'
 export interface ProductListConfig {
   page?: number | string
   limit?: number | string

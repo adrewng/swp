@@ -7,7 +7,7 @@ import AuctionCard from './components/AuctionCard'
 export default function AllAuctionList() {
   const { data: allAuctionData } = useQuery({
     queryKey: ['all-auction'],
-    queryFn: auctionApi.getAllAuction
+    queryFn: auctionApi.getActiveAuction
   })
 
   const allAuction = allAuctionData?.data.data.auctions

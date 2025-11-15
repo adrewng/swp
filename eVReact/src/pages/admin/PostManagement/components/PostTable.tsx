@@ -8,8 +8,9 @@ import { useState } from 'react'
 import { toast } from 'react-toastify'
 import PaginationAdmin from '~/components/Pagination/PaginationAdmin'
 import { Button } from '~/components/ui/button'
-import type { PostStatus } from '~/types/post.type'
+import type { PostStatus, PostType } from '~/types/post.type'
 import RejectReasonModal from './RejectReasonModal/RejectReasomModal'
+import PostDetailModal from './PostDetailModal'
 
 type GetPostsResponse = Awaited<ReturnType<typeof postApi.getPostsByAdmin>>
 
@@ -19,7 +20,10 @@ type Props = {
 }
 export default function PostTable(props: Props) {
   const { data, queryConfig } = props
+  const [viewingPost, setViewingPost] = useState<PostType | null>(null)
+
   const isPendingTab = queryConfig.status === 'pending'
+  console.log('post data: ', data)
 
   const queryClient = useQueryClient()
   const [rejectingPost, setRejectingPost] = useState<{ id: string | number; title?: string } | null>(null)
@@ -67,14 +71,14 @@ export default function PostTable(props: Props) {
                 <th className='py-3 px-4 whitespace-nowrap'>Giá</th>
                 <th className='py-3 px-4 whitespace-nowrap'>Ngày tạo</th>
                 <th className='py-3 px-4 whitespace-nowrap'>Trạng thái</th>
-                <th className='py-3 px-4 whitespace-nowrap'>Ưu tiên</th>
+                {/* <th className='py-3 px-4 whitespace-nowrap'>Ưu tiên</th> */}
                 {isPendingTab && <th className='py-3 px-4 whitespace-nowrap'>Hành động</th>}
               </tr>
             </thead>
             <tbody className='text-sm'>
               {data.data.data.posts.length > 0 ? (
                 data.data.data.posts.map((p) => (
-                  <tr key={p.id} className='border-t hover:bg-gray-50'>
+                  <tr key={p.id} className='border-t hover:bg-gray-50' onClick={() => setViewingPost(p)}>
                     <td className='py-3 px-4 whitespace-nowrap font-mono text-xs'>{p.id}</td>
                     {/* Sử dụng max-w và truncate cho tiêu đề để hạn chế chiều rộng cột, kết hợp với cuộn ngang */}
                     <td className='py-3 px-4 max-w-[200px] truncate'>{p.title}</td>
@@ -93,23 +97,23 @@ export default function PostTable(props: Props) {
 
                     {/* Trạng thái */}
                     <td className='py-3 px-4 whitespace-nowrap'>
-                      {p.status === 'pending' ? (
-                        <Badge className='bg-yellow-100 text-yellow-700'>Đang chờ</Badge>
-                      ) : p.status === 'approved' ? (
-                        <Badge className='bg-green-100 text-green-700'>Đã duyệt</Badge>
-                      ) : (
-                        <Badge className='bg-red-100 text-red-700'>Đã từ chối</Badge>
-                      )}
+                      <td className='py-3 px-4 whitespace-nowrap'>
+                        {p.status === 'pending' && <Badge className='bg-yellow-100 text-yellow-700'>Đang chờ</Badge>}
+                        {p.status === 'approved' && <Badge className='bg-green-100 text-green-700'>Đã duyệt</Badge>}
+                        {p.status === 'rejected' && <Badge className='bg-red-100 text-red-700'>Đã từ chối</Badge>}
+                        {p.status === 'banned' && <Badge className='bg-gray-200 text-gray-800'>Bị cấm</Badge>}
+                        {p.status === 'sold' && <Badge className='bg-blue-100 text-blue-700'>Đã bán</Badge>}
+                      </td>
                     </td>
 
                     {/* Ưu tiên */}
-                    <td className='py-3 px-4 whitespace-nowrap'>
+                    {/* <td className='py-3 px-4 whitespace-nowrap'>
                       {p.priority ? (
                         <Badge className='bg-purple-100 text-purple-700'>Ưu tiên {p.priority}</Badge>
                       ) : (
                         <Badge className='bg-gray-100 text-gray-600'>Thường</Badge>
                       )}
-                    </td>
+                    </td> */}
 
                     {isPendingTab && (
                       <td className='py-3 px-4 text-right whitespace-nowrap'>
@@ -155,6 +159,7 @@ export default function PostTable(props: Props) {
         onSubmit={handleSubmitReject}
         submitting={updateMutation.isPending}
       />
+      <PostDetailModal open={!!viewingPost} onClose={() => setViewingPost(null)} post={viewingPost} />
     </div>
   )
 }

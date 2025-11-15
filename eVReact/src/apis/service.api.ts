@@ -10,7 +10,7 @@ const serviceApi = {
     return http.get<SuccessResponse<ServiceList>>(`${URL_GET_SERVICE_POST}/${type}`)
   },
   changeCost(serviceId: number, cost: number) {
-    return http.put('/api/service/cost', { serviceId, cost })
+    return http.put(`/api/service/${serviceId}`, { cost })
   }
 }
 

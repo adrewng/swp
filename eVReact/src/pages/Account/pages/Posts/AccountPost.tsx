@@ -26,6 +26,8 @@ export default function AccountPost() {
     placeholderData: keepPreviousData
   })
   const accountPostData = postData?.data.data
+  console.log('data -', postData)
+
   // Mutation để đánh dấu bài đăng là "đã bán"
   const markAsSoldMutation = useMutation({
     mutationFn: (postId: string | number) => postApi.soldPost(postId),
@@ -62,7 +64,7 @@ export default function AccountPost() {
         </div>
 
         {/* Tabs */}
-        <div className='bg-white border border-gray-200 rounded-2xl p-2 grid grid-cols-8 gap-2'>
+        <div className='bg-white border border-gray-200 rounded-2xl p-2 grid grid-cols-9 gap-2'>
           {tabs.map((tab) => (
             <Link
               to={{
@@ -158,7 +160,11 @@ export default function AccountPost() {
                                     ? 'Đã bán'
                                     : post.status === 'banned'
                                       ? 'Đã cấm'
-                                      : 'Không rõ'}
+                                      : post.status === 'expired'
+                                        ? 'Đã hết hạn'
+                                        : post.status === 'draft'
+                                          ? 'Nháp'
+                                          : 'Không rõ'}
                       </span>
                     </div>
 
@@ -214,7 +220,9 @@ export default function AccountPost() {
                                             ? 'Đã bán'
                                             : post.status === 'banned'
                                               ? 'Đã cấm'
-                                              : 'Không rõ'}
+                                              : post.status === 'expired'
+                                                ? 'Đã hết hạn'
+                                                : 'Không rõ'}
                             </span>
                           </div>
 

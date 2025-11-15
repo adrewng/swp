@@ -1,10 +1,10 @@
-import { Server as SocketServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import jwt from 'jsonwebtoken';
-import * as chatService from '../services/chat.service';
-import * as notificationService from '../services/notification.service';
+import { Server as SocketServer } from 'socket.io';
 import * as auctionService from '../services/auction.service';
+import * as notificationService from '../services/notification.service';
 import { getVietnamISOString } from '../utils/datetime';
+import * as chatService from '../services/chat.service';
 
 let io: SocketServer;
 
@@ -12,8 +12,9 @@ interface SocketData {
 	userId: number;
 }
 
-/**
- * Initialize Socket.IO server cho chat
+/* ============================================================
+ *  INIT MAIN SOCKET (CHAT + NOTIFICATION)
+ * ============================================================
  */
 export function initializeSocket(server: HttpServer): SocketServer {
 	io = new SocketServer(server, {
@@ -25,21 +26,18 @@ export function initializeSocket(server: HttpServer): SocketServer {
 		transports: ['websocket', 'polling'],
 	});
 
-	// Middleware xác thực
+	/* ------------------ AUTH MIDDLEWARE ------------------ */
 	io.use((socket, next) => {
 		const token = socket.handshake.auth.token;
-
-		if (!token) {
-			return next(new Error('Authentication error'));
-		}
+		if (!token) return next(new Error('Authentication error'));
 
 		try {
 			const jwtSecret =
 				process.env.JWT_SECRET ||
 				process.env.ACCESS_TOKEN_SECRET ||
 				'your_super_strong_secret_key_here';
+
 			const decoded = jwt.verify(token, jwtSecret) as any;
-			// Token có field 'id', không có 'userId'
 			(socket.data as SocketData).userId = decoded.id;
 			next();
 		} catch (error) {
@@ -48,18 +46,15 @@ export function initializeSocket(server: HttpServer): SocketServer {
 		}
 	});
 
+	/* ------------------ MAIN CONNECTION ------------------ */
 	io.on('connection', (socket) => {
 		const userId = (socket.data as SocketData).userId;
-
 		console.log(`✅ User ${userId} connected: ${socket.id}`);
 
-		// Lưu user online
 		chatService.setUserOnline(userId, socket.id);
-
-		// Thông báo cho tất cả về user online
 		io.emit('user:online', { userId, status: 'online' });
 
-		// Lấy danh sách users đã chat
+		/* ==== CHAT EVENTS ==== */
 		socket.on('chat:users', async (callback) => {
 			try {
 				const users = await chatService.getChatUsers(userId);
@@ -69,7 +64,6 @@ export function initializeSocket(server: HttpServer): SocketServer {
 			}
 		});
 
-		// Lấy lịch sử chat với user khác
 		socket.on('chat:history', async (data, callback) => {
 			try {
 				const { otherUserId, limit, offset } = data;
@@ -80,16 +74,13 @@ export function initializeSocket(server: HttpServer): SocketServer {
 					offset,
 				);
 
-				// Đánh dấu đã đọc
 				await chatService.markMessagesAsRead(otherUserId, userId);
-
 				callback({ success: true, data: messages });
 			} catch (error: any) {
 				callback({ success: false, error: error.message });
 			}
 		});
 
-		// Gửi tin nhắn
 		socket.on('chat:send', async (data, callback) => {
 			try {
 				const { receiverId, message } = data;
@@ -99,27 +90,23 @@ export function initializeSocket(server: HttpServer): SocketServer {
 					message,
 				);
 
-				// Gửi cho người nhận (nếu đang online)
 				const receiverSocketId =
 					chatService.getUserSocketId(receiverId);
 				if (receiverSocketId) {
 					io.to(receiverSocketId).emit('chat:message', chatMessage);
 				}
 
-				// Confirm cho người gửi
 				callback({ success: true, data: chatMessage });
 			} catch (error: any) {
 				callback({ success: false, error: error.message });
 			}
 		});
 
-		// Đánh dấu đã đọc
 		socket.on('chat:read', async (data) => {
 			try {
 				const { senderId } = data;
 				await chatService.markMessagesAsRead(senderId, userId);
 
-				// Thông báo cho người gửi
 				const senderSocketId = chatService.getUserSocketId(senderId);
 				if (senderSocketId) {
 					io.to(senderSocketId).emit('chat:read', { userId });
@@ -129,7 +116,6 @@ export function initializeSocket(server: HttpServer): SocketServer {
 			}
 		});
 
-		// User đang typing
 		socket.on('chat:typing', (data) => {
 			const { receiverId, isTyping } = data;
 			const receiverSocketId = chatService.getUserSocketId(receiverId);
@@ -142,7 +128,6 @@ export function initializeSocket(server: HttpServer): SocketServer {
 			}
 		});
 
-		// Lấy số tin nhắn chưa đọc
 		socket.on('chat:unread', async (callback) => {
 			try {
 				const count = await chatService.getUnreadCount(userId);
@@ -152,22 +137,7 @@ export function initializeSocket(server: HttpServer): SocketServer {
 			}
 		});
 
-		// Disconnect
-		socket.on('disconnect', () => {
-			console.log(`❌ User ${userId} disconnected: ${socket.id}`);
-
-			const offlineUserId = chatService.setUserOffline(socket.id);
-			if (offlineUserId) {
-				io.emit('user:offline', {
-					userId: offlineUserId,
-					status: 'offline',
-				});
-			}
-		});
-
-		// ==================== NOTIFICATION EVENTS ====================
-
-		// Lấy danh sách notifications của user
+		/* ==== NOTIFICATIONS ==== */
 		socket.on('notification:list', async (data, callback) => {
 			try {
 				const { limit = 20, offset = 0 } = data || {};
@@ -177,13 +147,12 @@ export function initializeSocket(server: HttpServer): SocketServer {
 						limit,
 						offset,
 					);
-				callback({ success: true, notifications });  
+				callback({ success: true, notifications });
 			} catch (error: any) {
 				callback({ success: false, error: error.message });
 			}
 		});
 
-		// Lấy số notifications chưa đọc
 		socket.on('notification:unread', async (callback) => {
 			try {
 				const count = await notificationService.getUnreadCount(userId);
@@ -193,7 +162,6 @@ export function initializeSocket(server: HttpServer): SocketServer {
 			}
 		});
 
-		// Đánh dấu notification đã đọc
 		socket.on('notification:read', async (data, callback) => {
 			try {
 				const { notificationId } = data;
@@ -204,7 +172,6 @@ export function initializeSocket(server: HttpServer): SocketServer {
 			}
 		});
 
-		// Đánh dấu tất cả notifications đã đọc
 		socket.on('notification:readAll', async (callback) => {
 			try {
 				await notificationService.markAllAsRead(userId);
@@ -214,7 +181,6 @@ export function initializeSocket(server: HttpServer): SocketServer {
 			}
 		});
 
-		// Xóa notification
 		socket.on('notification:delete', async (data, callback) => {
 			try {
 				const { notificationId } = data;
@@ -227,161 +193,184 @@ export function initializeSocket(server: HttpServer): SocketServer {
 				callback({ success: false, error: error.message });
 			}
 		});
+
+		/* ==== DISCONNECT ==== */
+		socket.on('disconnect', () => {
+			console.log(`❌ User ${userId} disconnected: ${socket.id}`);
+
+			const offlineUserId = chatService.setUserOffline(socket.id);
+			if (offlineUserId) {
+				io.emit('user:offline', {
+					userId: offlineUserId,
+					status: 'offline',
+				});
+			}
+		});
 	});
 
-	console.log('🔌 Chat & Notification WebSocket server initialized');
+	console.log('🔌 Chat & Notification WebSocket initialized');
 	return io;
 }
 
-/**
- * Get Socket.IO instance
+/* ============================================================
+ *  GET SOCKET INSTANCE
+ * ============================================================
  */
 export function getIO(): SocketServer {
-	if (!io) {
-		throw new Error('Socket.IO not initialized');
-	}
+	if (!io) throw new Error('Socket.IO not initialized');
 	return io;
 }
 
-/**
- * 📩 Gửi notification real-time cho user qua WebSocket
- * Dùng để thông báo khi admin approve/reject post
+/* ============================================================
+ *  SEND NOTIFICATION TO A USER
+ * ============================================================
  */
 export function sendNotificationToUser(
 	userId: number,
-	notification: {
-		id: number;
-		message: string;
-	},
+	notification: { id: number; message: string },
 ): void {
-	if (!io) {
-		console.warn('⚠️ Socket.IO not initialized, cannot send notification');
-		return;
-	}
+	if (!io) return;
 
 	const socketId = chatService.getUserSocketId(userId);
+
 	if (socketId) {
 		io.to(socketId).emit('notification:new', {
 			id: notification.id,
 			message: notification.message,
 		});
 	} else {
-		console.log(
-			`⚠️ User ${userId} not online, notification saved but not sent`,
-		);
+		console.log(`⚠️ User ${userId} not online (saved only)`);
 	}
 }
 
-/**
- * Setup auction bidding namespace with real-time updates
+/* ============================================================
+ *  SETUP AUCTION SOCKET
+ * ============================================================
  */
 export function setupAuctionSocket() {
 	if (!io) {
-		console.error(
-			'❌ Socket.IO not initialized, cannot setup auction namespace',
-		);
+		console.error('❌ Socket.IO not initialized');
 		return;
 	}
 
 	const auctionNamespace = io.of('/auction');
 
-	// Authentication middleware for auction namespace
+	/* ---------- AUTH NAMESPACE ---------- */
 	auctionNamespace.use((socket, next) => {
 		const token = socket.handshake.auth.token;
-
-		if (!token) {
-			return next(new Error('Authentication error'));
-		}
+		if (!token) return next(new Error('Authentication error'));
 
 		try {
 			const jwtSecret =
 				process.env.JWT_SECRET ||
 				process.env.ACCESS_TOKEN_SECRET ||
 				'your_super_strong_secret_key_here';
+
 			const decoded = jwt.verify(token, jwtSecret) as any;
 			(socket.data as SocketData).userId = decoded.id;
 			next();
 		} catch (error) {
-			console.error(
-				'❌ Auction socket token verification failed:',
-				error,
-			);
+			console.error('❌ Auction socket verification failed:', error);
 			next(new Error('Invalid token'));
 		}
 	});
 
+	/* ---------- CONNECTION ---------- */
 	auctionNamespace.on('connection', (socket) => {
 		const userId = (socket.data as SocketData).userId;
 		console.log(`✅ User ${userId} connected to auction namespace`);
 
-		/**
-		 * Join a specific auction room
-		 * Client emits: { auctionId: number }
+		/* ============================================================
+		 *  JOIN AUCTION
+		 * ============================================================
 		 */
 		socket.on('auction:join', async (data: { auctionId: number }) => {
 			try {
 				const { auctionId } = data;
 
-				// Verify auction exists and is active
-				const auction = await auctionService.getActiveAuction(
+				const auction = await auctionService.getAuctionExisting(
 					auctionId,
 				);
 				if (!auction) {
-					socket.emit('auction:error', {
-						message: 'Auction not found or not active',
+					return socket.emit('auction:error', {
+						message: 'Phiên đấu giá không tồn tại',
 					});
-					return;
 				}
 
-				// Check if user has joined (paid deposit)
+				/* ---- ALWAYS JOIN PUBLIC ROOM ---- */
+				const publicRoom = `auction_public_${auctionId}`;
+				socket.join(publicRoom);
+				console.log(
+					`👁 User ${userId} joined PUBLIC room ${publicRoom}`,
+				);
+
+				/* ---- FETCH STATE ---- */
+				const auctionStatus = await auctionService.getAuctionStatus(
+					auctionId,
+				);
+				const remainingTime =
+					await auctionService.getAuctionRemainingTime(auctionId);
+
+				if (auctionStatus === 'ended') {
+					return socket.emit('auction:closed', {
+						auctionId,
+						winnerId: auction.winner_id,
+						winningPrice: auction.winning_price,
+						reason: 'duration_expired',
+						message: 'Phiên đấu giá đã kết thúc',
+					});
+				}
+
+				if (auctionStatus === 'live') {
+					socket.emit('auction:live', {
+						auctionId,
+						auction,
+						remainingTime,
+						message: 'Phiên đấu giá đang diễn ra',
+					});
+				}
+
+				/* ---- CHECK DEPOSIT ---- */
 				const hasJoined = await auctionService.hasUserJoinedAuction(
 					userId,
 					auctionId,
 				);
+
 				if (!hasJoined) {
-					socket.emit('auction:error', {
-						message: 'You must pay deposit to join this auction',
+					return socket.emit('auction:needDeposit', {
+						auctionId,
+						auction,
+						remainingTime,
+						message: 'Bạn phải đặt cọc để tham gia đấu giá',
 					});
-					return;
 				}
 
-				// Join the auction room
-				socket.join(`auction_${auctionId}`);
+				/* ---- JOIN PRIVATE ROOM ---- */
+				const privateRoom = `auction_${auctionId}`;
+				socket.join(privateRoom);
+				console.log(
+					`🔐 User ${userId} joined PRIVATE room ${privateRoom}`,
+				);
 
-				// Get remaining time
-				const remainingTime =
-					await auctionService.getAuctionRemainingTime(auctionId);
-
-				console.log('remaining time auction:join', remainingTime);
-				// Send current auction state to the user
 				socket.emit('auction:joined', {
 					auctionId,
 					auction,
 					remainingTime,
-					message: 'Successfully joined auction',
+					message: 'Tham gia đấu giá thành công',
 				});
 
-				// Notify others in the room
-				socket.to(`auction_${auctionId}`).emit('auction:user_joined', {
+				socket.to(privateRoom).emit('auction:user_joined', {
 					userId,
-					message: `User ${userId} joined the auction`,
-					remainingTime,
+					message: `User ${userId} đã tham gia`,
 				});
-
-				console.log(
-					`✅ User ${userId} joined auction room ${auctionId}`,
-				);
 			} catch (error) {
-				console.error('Error joining auction:', error);
-				socket.emit('auction:error', {
-					message: 'Failed to join auction',
-				});
+				console.error('❌ Unexpected join error:', error);
 			}
 		});
 
-		/**
-		 * Place a bid on an auction
-		 * Client emits: { auctionId: number, bidAmount: number }
+		/* ============================================================
+		 *  BID EVENT
+		 * ============================================================
 		 */
 		socket.on(
 			'auction:bid',
@@ -389,15 +378,12 @@ export function setupAuctionSocket() {
 				try {
 					const { auctionId, bidAmount } = data;
 
-					// Validate input
 					if (!auctionId || !bidAmount || bidAmount <= 0) {
-						socket.emit('auction:error', {
+						return socket.emit('auction:error', {
 							message: 'Invalid bid data',
 						});
-						return;
 					}
 
-					// Place the bid
 					const result = await auctionService.placeBid(
 						auctionId,
 						userId,
@@ -405,25 +391,37 @@ export function setupAuctionSocket() {
 					);
 
 					if (!result.success) {
-						socket.emit('auction:error', {
+						return socket.emit('auction:error', {
 							message: result.message,
 						});
-						return;
 					}
 
-					// Broadcast bid update to all users in the auction room
+					const payload = {
+						auctionId,
+						winnerId: userId,
+						winningPrice: bidAmount,
+						message: result.message,
+						timestamp: getVietnamISOString(),
+					};
+					auctionNamespace
+						.to(`auction_public_${auctionId}`)
+						.emit('auction:bid_update', payload);
 					auctionNamespace
 						.to(`auction_${auctionId}`)
-						.emit('auction:bid_update', {
-							auctionId,
-							winnerId: userId,
-							winningPrice: bidAmount,
-							message: result.message,
-							timestamp: getVietnamISOString(), // ✅ Múi giờ Việt Nam (GMT+7)
-						});
+						.emit('auction:bid_update', payload);
 
-					// If target price reached, auction is closed
 					if (result.message.includes('Target price reached')) {
+						auctionNamespace
+							.to(`auction_public_${auctionId}`)
+							.emit('auction:closed', {
+								auctionId,
+								reason: 'target_price_reached',
+								winnerId: userId,
+								winningPrice: bidAmount,
+								message:
+									'Auction closed - Target price reached!',
+							});
+
 						auctionNamespace
 							.to(`auction_${auctionId}`)
 							.emit('auction:closed', {
@@ -434,16 +432,9 @@ export function setupAuctionSocket() {
 								message:
 									'Auction closed - Target price reached!',
 							});
-						console.log(
-							`🎉 Auction ${auctionId} closed - target price reached by user ${userId}`,
-						);
-					} else {
-						console.log(
-							`💰 New bid on auction ${auctionId}: ${bidAmount} VND by user ${userId}`,
-						);
 					}
 				} catch (error) {
-					console.error('Error placing bid:', error);
+					console.error('❌ Error placing bid:', error);
 					socket.emit('auction:error', {
 						message: 'Failed to place bid',
 					});
@@ -451,8 +442,9 @@ export function setupAuctionSocket() {
 			},
 		);
 
-		/**
-		 * Leave an auction room
+		/* ============================================================
+		 *  LEAVE ROOM
+		 * ============================================================
 		 */
 		socket.on('auction:leave', (data: { auctionId: number }) => {
 			const { auctionId } = data;
@@ -470,8 +462,9 @@ export function setupAuctionSocket() {
 	console.log('✅ Auction socket namespace initialized');
 }
 
-/**
- * Broadcast auction time update to all participants
+/* ============================================================
+ *  BROADCAST TIME UPDATE (PUBLIC + PRIVATE)
+ * ============================================================
  */
 export function broadcastAuctionTimeUpdate(
 	auctionId: number,
@@ -479,31 +472,51 @@ export function broadcastAuctionTimeUpdate(
 ): void {
 	if (!io) return;
 
-	const auctionNamespace = io.of('/auction');
-	auctionNamespace.to(`auction_${auctionId}`).emit('auction:time_update', {
+	const ns = io.of('/auction');
+
+	ns.to(`auction_public_${auctionId}`).emit('auction:time_update', {
 		auctionId,
 		remainingTime,
 	});
+
+	ns.to(`auction_${auctionId}`).emit('auction:time_update', {
+		auctionId,
+		remainingTime,
+	});
+
+	console.log(`⏰ Auction ${auctionId} time update: ${remainingTime}s`);
 }
 
-/**
- * Broadcast auction closure to all participants
+/* ============================================================
+ *  BROADCAST CLOSED (PUBLIC + PRIVATE)
+ * ============================================================
  */
 export function broadcastAuctionClosed(
 	auctionId: number,
 	winnerId: number | null,
 	winningPrice: number | null,
+	reason?: string,
+	message?: string,
 ): void {
 	if (!io) return;
 
-	const auctionNamespace = io.of('/auction');
-	auctionNamespace.to(`auction_${auctionId}`).emit('auction:closed', {
+	const ns = io.of('/auction');
+
+	ns.to(`auction_public_${auctionId}`).emit('auction:closed', {
 		auctionId,
-		reason: 'duration_expired',
 		winnerId,
 		winningPrice,
-		message: 'Auction closed - Time expired!',
+		message: message || 'Phiên đấu giá đã kết thúc',
+		reason: reason || 'duration_expired',
 	});
 
-	console.log(`⏰ Auction ${auctionId} closed due to timeout`);
+	ns.to(`auction_${auctionId}`).emit('auction:closed', {
+		auctionId,
+		winnerId,
+		winningPrice,
+		message: message || 'Phiên đấu giá đã kết thúc',
+		reason: reason || 'duration_expired',
+	});
+
+	console.log(`🚫 Auction ${auctionId} closed (time expired)`);
 }

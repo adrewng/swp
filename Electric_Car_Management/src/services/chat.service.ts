@@ -112,8 +112,7 @@ export async function getChatUsers(userId: number): Promise<ChatUser[]> {
 	);
 
 	const users = rows as ChatUser[];
-
-	// Thêm online status
+// Thêm online status
 	users.forEach((user) => {
 		user.is_online = onlineUsers.has(user.id);
 	});

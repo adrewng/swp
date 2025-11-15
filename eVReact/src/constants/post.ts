@@ -18,6 +18,7 @@ export const tabs = [
   { id: 'auctioning', label: 'Đang đấu giá', param: 'status', statusQuery: 'auctioning' },
   { id: 'auctioned', label: 'Đã đấu gia', param: 'status', statusQuery: 'auctioned' },
   { id: 'sold', label: 'Đã bán', param: 'status', statusQuery: 'sold' },
+  { id: 'expired', label: 'Đã hết hạn', param: 'status', statusQuery: 'expired' },
   { id: 'banned', label: 'Đã cấm', param: 'status', statusQuery: 'banned' }
 ]
 
@@ -34,5 +35,6 @@ export const statusTone: Record<
   auctioning: { text: 'Đang đấu giá', cls: 'bg-indigo-50 text-indigo-700 ring-indigo-100' },
   auctioned: { text: 'Đã đấu giá xong', cls: 'bg-slate-50 text-slate-700 ring-slate-200' },
   sold: { text: 'Đã bán', cls: 'bg-slate-50 text-slate-700 ring-slate-200' },
+  expired: { text: 'Đã hết hạn', cls: 'bg-slate-50 text-slate-700 ring-slate-200' },
   banned: { text: 'Đã cấm', cls: 'bg-red-50 text-red-700 ring-red-100' }
 }

@@ -54,13 +54,6 @@ export default function AuctionBox({ auctionData }: AuctionBoxProps) {
   const accessToken = localStorage.getItem('access_token')
   const token = accessToken?.replace('Bearer ', '')
 
-  // Fetch thông tin auction ban đầu
-  // const { data: auctionData } = useQuery({
-  //   queryKey: ['auction-info', product_id],
-  //   queryFn: () => auctionApi.getAuctionByProduct(Number(product_id)),
-  //   enabled: !!product_id
-  // })
-
   const auctionInfo = auctionData?.data?.data
   const isAuctionEnded = auctionInfo?.status === 'ended' || isEnded
 
@@ -71,112 +64,131 @@ export default function AuctionBox({ auctionData }: AuctionBoxProps) {
   const deposit = Number(auctionInfo?.deposit || 0)
 
   useEffect(() => {
-    if (!auctionId || !token) {
-      return
-    }
+    if (!token) return
+
     const socketInstance: Socket = io(`${SERVER_URL}/auction`, {
       auth: { token },
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5
     })
 
-    // Khi connect thành công
+    setSocket(socketInstance)
+
+    return () => {
+      socketInstance.disconnect()
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (socket && auctionId) {
+      console.log('JOIN AUCTION ONCE:', auctionId)
+      socket.emit('auction:join', { auctionId })
+    }
+  }, [socket, auctionId])
+
+  useEffect(() => {
+    if (!socket) return
+
     const onConnect = () => {
       setIsConnected(true)
-      // Join auction room (server sẽ trả need_deposit nếu chưa đặt cọc)
-      socketInstance.emit('auction:join', { auctionId })
     }
 
-    // Khi connect lỗi
-    const onConnectError = () => {
-      setIsConnected(false)
-      toast.error('Không thể kết nối đến server đấu giá')
-    }
-
-    // Nhận thông tin khi join thành công
-    const onJoined = (data: any) => {
-      setHasJoined(true)
-      setCurrentPrice(Number(data.auction?.winning_price || startingPrice))
-      setWinnerId(data.auction?.winner_id || null)
-      setTimeLeft(data.remainingTime || 0)
-      toast.success('Đã tham gia phòng đấu giá!')
-    }
-
-    // Khi có người khác join
-    const onUserJoined = (data: any) => {
-      setTimeLeft(data.remainingTime)
-    }
-
-    // Cập nhật giá mới khi có người đặt giá
-    const onBidUpdate = (data: any) => {
-      setCurrentPrice(Number(data.winningPrice))
-      setWinnerId(data.winnerId)
-      if (data.winnerId === profile?.id) {
-        toast.success(`🎉 Bạn đang dẫn đầu với giá ${data.winningPrice.toLocaleString('vi-VN')}đ!`)
-      } else {
-        toast.info(`Giá mới: ${data.winningPrice.toLocaleString('vi-VN')}đ`)
-      }
-    }
-
-    // Cập nhật thời gian còn lại
-    const onTimeUpdate = (data: any) => {
-      setTimeLeft(data.remainingTime)
-    }
-
-    // Auction đóng
-    const onClosed = (data: any) => {
-      setIsEnded(true)
-      setWinnerId(data.winnerId)
-      setTimeLeft(0)
-
-      if (data.winnerId === profile?.id) {
-        toast.success('🏆 Chúc mừng! Bạn đã thắng đấu giá!')
-      } else if (data.winnerId) {
-        toast.info(`Đấu giá đã kết thúc. Người thắng: User ${data.winnerId}`)
-      } else {
-        toast.info('Đấu giá đã kết thúc mà không có người thắng')
-      }
-    }
-
-    // Lỗi từ server
-    const onAuctionError = (data: any) => {
-      toast.error(data?.message || 'Có lỗi xảy ra')
-    }
-
-    // Disconnect
     const onDisconnect = () => {
       setIsConnected(false)
       setHasJoined(false)
     }
 
-    socketInstance.on('connect', onConnect)
-    socketInstance.on('connect_error', onConnectError)
-    socketInstance.on('auction:joined', onJoined)
-    socketInstance.on('auction:user_joined', onUserJoined)
-    socketInstance.on('auction:bid_update', onBidUpdate)
-    socketInstance.on('auction:time_update', onTimeUpdate)
-    socketInstance.on('auction:closed', onClosed)
-    socketInstance.on('auction:error', onAuctionError)
-    socketInstance.on('disconnect', onDisconnect)
+    const onJoined = (data: any) => {
+      setHasJoined(true)
+      setCurrentPrice(Number(data.auction?.winning_price || startingPrice))
+      setWinnerId(data.auction?.winner_id || null)
+      setTimeLeft(data.remainingTime || 0)
+      if (!hasJoined) {
+        toast.success('Đã tham gia phòng đấu giá!')
+      }
+    }
+    const onLive = (data: any) => {
+      setTimeLeft(data.remainingTime)
+      setCurrentPrice(Number(data.auction?.winning_price || startingPrice))
+      setWinnerId(data.auction?.winner_id || null)
+    }
 
-    setSocket(socketInstance)
+    const onUserJoined = (data: any) => {
+      setTimeLeft(data.remainingTime)
+    }
+
+    const onBidUpdate = (data: any) => {
+      setCurrentPrice(Number(data.winningPrice))
+      setWinnerId(data.winnerId)
+
+      if (hasJoined) {
+        if (data.winnerId === profile?.id) {
+          toast.success(`🎉 Bạn đang dẫn đầu với giá ${data.winningPrice.toLocaleString('vi-VN')}đ!`)
+        } else {
+          toast.info(`Giá mới: ${data.winningPrice.toLocaleString('vi-VN')}đ`)
+        }
+      }
+    }
+
+    const onTimeUpdate = (data: any) => {
+      setTimeLeft(data.remainingTime)
+    }
+
+    const onClosed = (data: any) => {
+      setIsEnded(true)
+      setWinnerId(data.winnerId)
+      setTimeLeft(0)
+      if (hasJoined) {
+        if (data.winnerId === profile?.id) {
+          toast.success('🏆 Chúc mừng! Bạn đã thắng đấu giá!')
+        } else if (data.winnerId) {
+          toast.info(`Đấu giá đã kết thúc. Người thắng: User ${data.winnerId}`)
+        } else {
+          toast.info('Đấu giá đã kết thúc mà không có người thắng')
+        }
+      } else {
+        toast.info('Đấu giá đã kết thúc')
+      }
+    }
+
+    const onAuctionError = (data: any) => {
+      toast.error(data?.message || 'Có lỗi xảy ra')
+    }
+    const onNeedDeposit = (data: any) => {
+      setTimeLeft(data.remainingTime)
+      setCurrentPrice(Number(data.auction?.winning_price || startingPrice))
+      setWinnerId(data.auction?.winner_id || null)
+      toast.info(data?.message || 'Bạn cần nộp tiền cọc để tham gia đấu giá')
+    }
+
+    // Register listeners
+    socket.on('connect', onConnect)
+    socket.on('disconnect', onDisconnect)
+    socket.on('auction:live', onLive)
+    socket.on('auction:needDeposit', onNeedDeposit)
+    socket.on('auction:joined', onJoined)
+    socket.on('auction:user_joined', onUserJoined)
+    socket.on('auction:bid_update', onBidUpdate)
+    socket.on('auction:time_update', onTimeUpdate)
+    socket.on('auction:closed', onClosed)
+    socket.on('auction:error', onAuctionError)
 
     return () => {
-      socketInstance.off('connect', onConnect)
-      socketInstance.off('connect_error', onConnectError)
-      socketInstance.off('auction:joined', onJoined)
-      socketInstance.off('auction:user_joined', onUserJoined)
-      socketInstance.off('auction:bid_update', onBidUpdate)
-      socketInstance.off('auction:time_update', onTimeUpdate)
-      socketInstance.off('auction:closed', onClosed)
-      socketInstance.off('auction:error', onAuctionError)
-      socketInstance.off('disconnect', onDisconnect)
-      socketInstance.emit('auction:leave', { auctionId })
-      socketInstance.disconnect()
+      socket.off('connect', onConnect)
+      socket.off('disconnect', onDisconnect)
+      socket.off('auction:joined', onJoined)
+      socket.off('auction:needDeposit', onNeedDeposit)
+      socket.off('auction:user_joined', onUserJoined)
+      socket.off('auction:bid_update', onBidUpdate)
+      socket.off('auction:time_update', onTimeUpdate)
+      socket.off('auction:closed', onClosed)
+      socket.off('auction:live', onLive)
+      socket.off('auction:error', onAuctionError)
     }
-  }, [auctionId, token, profile?.id, startingPrice])
+  }, [socket, profile?.id, startingPrice])
+
   // --- update initial bidAmount ---
   useEffect(() => {
     if (auctionInfo && step > 0) {

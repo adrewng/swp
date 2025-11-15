@@ -32,7 +32,7 @@ interface Props {
 export default function PostFilters(props: Props) {
   const [search, setSearch] = useState('')
   const [openSetting, setOpenSetting] = useState(false)
-  const [price, setPrice] = useState(50000)
+  const [price, setPrice] = useState('50000')
   const [year, setYear] = useState(years[0])
   const [selectedType, setSelectedType] = useState<'vehicle' | 'battery'>('vehicle')
 
@@ -91,8 +91,9 @@ export default function PostFilters(props: Props) {
 
   const handleSavePrice = () => {
     const serviceId = selectedType === 'vehicle' ? 1 : 2
+    const numericPrice = Number(price)
 
-    changeCost.mutate({ serviceId, cost: price })
+    changeCost.mutate({ serviceId, cost: numericPrice })
     console.log('💰 Giá mới mỗi lần đăng tin:', price)
     setOpenSetting(false)
   }
@@ -211,13 +212,7 @@ export default function PostFilters(props: Props) {
                 <option value='battery'>Pin</option>
               </select>
               <Label htmlFor='price'>Số tiền (VNĐ)</Label>
-              <Input
-                id='price'
-                type='number'
-                min={0}
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-              />
+              <Input id='price' type='number' min={0} value={price} onChange={(e) => setPrice(e.target.value)} />
             </div>
             <DialogFooter>
               <Button variant='outline' onClick={() => setOpenSetting(false)}>
