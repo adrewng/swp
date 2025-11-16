@@ -58,6 +58,7 @@ const LoginPage = () => {
             })
           }
         } else if (isAxiosAccountBlockedError(error)) {
+          console.log('modal')
           const reason = getAccountBlockedReason(error)
           setModalReason(reason ?? 'Tài khoản của bạn đã bị khóa.')
           setOpenModal(true)

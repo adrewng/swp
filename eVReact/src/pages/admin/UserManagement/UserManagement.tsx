@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 // import Link from 'next/link'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Search, UserRound } from 'lucide-react'
 import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom'
 import userApi from '~/apis/user.api'
@@ -17,6 +17,7 @@ export default function UserManagement() {
   const [openLockModal, setOpenLockModal] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [lockReason, setLockReason] = useState('')
+  const queryClient = useQueryClient()
 
   // Debounce search term
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function UserManagement() {
       setOpenLockModal(false)
       setLockReason('')
       setSelectedUserId(null)
+      queryClient.invalidateQueries({ queryKey: ['user-list'] })
     },
     onError: () => {
       toast.error('Khóa người dùng thất bại')
@@ -171,15 +173,17 @@ export default function UserManagement() {
                           {new Date(user.created_at).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                         </td>
                         <td className='py-3 px-4'>
-                          {user.role_id === 2 ? (
-                            ''
-                          ) : (
+                          {user.status === 'active' ? (
                             <button
                               onClick={() => openLockUserModal(user.id)}
                               className='px-3 py-1.5 text-xs font-medium rounded-md bg-red-100 text-red-700 hover:bg-red-200 transition-colors'
                             >
                               Khóa
                             </button>
+                          ) : (
+                            <span className='px-3 py-1.5 text-xs font-medium rounded-md bg-red-100 text-red-600 hover:bg-red-100 transition-colors'>
+                              Đã khóa
+                            </span>
                           )}
                         </td>
                       </tr>
