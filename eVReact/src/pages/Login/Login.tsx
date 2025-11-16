@@ -1,18 +1,19 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { authApi } from '~/apis/auth.api'
 import AuthHeader from '~/components/AuthHeader'
 import Button from '~/components/Button'
 import Input from '~/components/Input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { path } from '~/constants/path'
 import { AppContext } from '~/contexts/app.context'
 import bannerLogin from '~/shared/bannerLogin.png'
 import { type ErrorResponse } from '~/types/util.type'
 import { schema, type Schema } from '~/utils/rule'
-import { isUnprocessableEntityError } from '~/utils/util'
+import { getAccountBlockedReason, isAxiosAccountBlockedError, isUnprocessableEntityError } from '~/utils/util'
 
 type FormData = Pick<Schema, 'password' | 'email'>
 const loginSchema = schema.pick(['password', 'email'])
@@ -28,6 +29,8 @@ const LoginPage = () => {
 
   const navigate = useNavigate()
   const { setIsAuthenticated, setProfile } = useContext(AppContext)
+  const [openModal, setOpenModal] = useState(false)
+  const [modalReason, setModalReason] = useState<string>('')
 
   const loginMutation = useMutation({
     mutationFn: (body: FormData) => authApi.loginAccount(body)
@@ -54,6 +57,10 @@ const LoginPage = () => {
               })
             })
           }
+        } else if (isAxiosAccountBlockedError(error)) {
+          const reason = getAccountBlockedReason(error)
+          setModalReason(reason ?? 'Tài khoản của bạn đã bị khóa.')
+          setOpenModal(true)
         }
       }
     })
@@ -153,6 +160,22 @@ const LoginPage = () => {
           </div>
         </section>
       </main>
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tài khoản bị khóa</DialogTitle>
+          </DialogHeader>
+          <p className='mt-2'>{modalReason}</p>
+          <div className='mt-4 text-right'>
+            <button
+              onClick={() => setOpenModal(false)}
+              className='rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700'
+            >
+              Đóng
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

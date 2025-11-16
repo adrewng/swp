@@ -14,6 +14,24 @@ export function isAxiosUnauthorizedError<UnauthorizedError>(error: unknown): err
   return isAxiosError(error) && error.response?.status === HttpStatusCode.Unauthorized
 }
 
+export function isAxiosAccountBlockedError(error: unknown): error is AxiosError<ErrorResponse<{ reason: string }>> {
+  if (!error || typeof error !== 'object') return false
+
+  const axiosError = error as AxiosError<ErrorResponse<{ reason: string }>>
+  return (
+    axiosError.isAxiosError === true &&
+    axiosError.response?.status === HttpStatusCode.Forbidden &&
+    typeof axiosError.response?.data?.data?.reason === 'string'
+  )
+}
+
+export function getAccountBlockedReason(error: unknown): string | undefined {
+  if (isAxiosAccountBlockedError(error)) {
+    return error.response?.data?.data?.reason
+  }
+  return undefined
+}
+
 export function isAxiosExpiredTokenError<UnauthorizedError>(error: unknown): error is AxiosError<UnauthorizedError> {
   return (
     isAxiosUnauthorizedError<ErrorResponse<{ name: string; message: string }>>(error) &&

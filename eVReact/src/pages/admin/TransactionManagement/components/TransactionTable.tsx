@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import type { TransactionListAdmin } from '~/types/transaction.type'
+import { formatUTCDateString } from '~/utils/util'
 
 export default function TransactionTable({ transaction }: { transaction: TransactionListAdmin }) {
   const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
@@ -93,7 +94,7 @@ export default function TransactionTable({ transaction }: { transaction: Transac
                       <td className='py-3 px-4 text-gray-600'>{txn.buyer_id}</td>
                       {/* Ngày tạo */}
                       <td className='py-3 px-4 text-gray-500 text-sm whitespace-nowrap'>
-                        {new Date(txn.created_at).toLocaleString('vi-VN', {
+                        {new Date(formatUTCDateString(txn.created_at)).toLocaleString('vi-VN', {
                           year: 'numeric',
                           month: 'numeric',
                           day: 'numeric',

@@ -9,6 +9,9 @@ const userApi = {
         search
       }
     })
+  },
+  lockUser(userId: number, reason: string) {
+    return http.post(`/api/admin/block-user/${userId}`, { reason })
   }
 }
 

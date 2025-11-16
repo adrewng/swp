@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { omit } from 'lodash'
 import { Filter, Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 import orderApi from '~/apis/order.api'
 import { OrderCardSkeleton } from '~/components/skeleton'
@@ -18,18 +18,10 @@ export default function AccountOrders() {
   const navigate = useNavigate()
 
   const entries = Object.entries(ORDER_TYPE_LABEL) as [OrderType, string][]
-
-  const [activeTab, setActiveTab] = useState<OrderType>('post')
+  const activeTab = (queryConfig.type as OrderType) || 'post'
   const [open, setOpen] = useState(false)
   const [current, setCurrent] = useState<Order | null>(null)
   const [id, setId] = useState<number | string>()
-
-  useEffect(() => {
-    const urlType = (queryConfig.type as OrderType) || 'post'
-    if (urlType !== activeTab) {
-      setActiveTab(urlType)
-    }
-  }, [queryConfig.type, activeTab])
 
   const { data: orderData, isLoading } = useQuery({
     queryKey: ['order', queryConfig],
@@ -42,7 +34,6 @@ export default function AccountOrders() {
   }
 
   const handleTypeClick = (key: OrderType) => {
-    setActiveTab(key)
     navigate({
       pathname: '',
       search: createSearchParams(omit({ ...queryConfig, type: key, page: '1' }, ['orderId'])).toString()
@@ -85,7 +76,7 @@ export default function AccountOrders() {
                   key={key}
                   onClick={() => handleTypeClick(key)}
                   className={[
-                    'rounded-2xl px-3 py-2 text-sm border',
+                    'rounded-2xl px-3 py-2 text-sm border transition-all duration-200 ease-in-out',
                     active
                       ? 'border-gray-900 bg-gray-900 text-white'
                       : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50'
@@ -132,8 +123,6 @@ export default function AccountOrders() {
                 autoComplete='off'
                 aria-label='Tìm theo mã đơn'
               />
-
-              {/* Divider (ẩn trên mobile để gọn) */}
               <span className='hidden h-5 w-px bg-gray-200 md:block' aria-hidden />
 
               <button
@@ -166,7 +155,6 @@ export default function AccountOrders() {
           )}
         </div>
 
-        {/* Giữ Pagination, đọc từ API */}
         <Pagination pageSize={data?.pagination?.page_size ?? 1} queryConfig={queryConfig} />
 
         <OrderDetail open={open} onClose={() => setOpen(false)} order={current} />

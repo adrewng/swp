@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
 // import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Search, UserRound } from 'lucide-react'
 import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom'
 import userApi from '~/apis/user.api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { toast } from 'react-toastify'
 
 export default function UserManagement() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
+  const [openLockModal, setOpenLockModal] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
+  const [lockReason, setLockReason] = useState('')
 
   // Debounce search term
   useEffect(() => {
@@ -28,8 +33,33 @@ export default function UserManagement() {
   })
 
   const userList = userData?.data.data.users
-
   const totalUsers = userData?.data.data.totalUsers
+
+  const lockUser = useMutation({
+    mutationFn: ({ userId, reason }: { userId: number; reason: string }) => userApi.lockUser(userId, reason),
+    onSuccess: () => {
+      toast.success('Đã khóa người dùng thành công!')
+      setOpenLockModal(false)
+      setLockReason('')
+      setSelectedUserId(null)
+    },
+    onError: () => {
+      toast.error('Khóa người dùng thất bại')
+    }
+  })
+
+  const openLockUserModal = (userId: number) => {
+    setSelectedUserId(userId)
+    setOpenLockModal(true)
+  }
+  const confirmLockUser = () => {
+    if (!selectedUserId) return
+    console.log('Khóa user:', selectedUserId, 'Lý do:', lockReason)
+    lockUser.mutate({
+      userId: selectedUserId,
+      reason: lockReason
+    })
+  }
 
   if (isLoading)
     return (
@@ -104,6 +134,7 @@ export default function UserManagement() {
                     <th className='text-left py-3 px-4 font-semibold'>SĐT</th>
                     <th className='text-left py-3 px-4 font-semibold'>Trạng thái</th>
                     <th className='text-left py-3 px-4 font-semibold'>Ngày tham gia</th>
+                    <th className='text-left py-3 px-4 font-semibold'>Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -139,6 +170,18 @@ export default function UserManagement() {
                         <td className='py-3 px-4 text-muted-foreground'>
                           {new Date(user.created_at).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                         </td>
+                        <td className='py-3 px-4'>
+                          {user.role_id === 2 ? (
+                            ''
+                          ) : (
+                            <button
+                              onClick={() => openLockUserModal(user.id)}
+                              className='px-3 py-1.5 text-xs font-medium rounded-md bg-red-100 text-red-700 hover:bg-red-200 transition-colors'
+                            >
+                              Khóa
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                 </tbody>
@@ -147,6 +190,42 @@ export default function UserManagement() {
           </CardContent>
         </Card>
       </div>
+      <Dialog open={openLockModal} onOpenChange={setOpenLockModal}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>Khóa người dùng</DialogTitle>
+            <p className='text-sm text-muted-foreground'>Nhập lý do mà bạn muốn khóa tài khoản này.</p>
+          </DialogHeader>
+
+          <div className='space-y-3 py-2'>
+            <label className='text-sm font-medium'>Lý do khóa</label>
+            <textarea
+              value={lockReason}
+              onChange={(e) => setLockReason(e.target.value)}
+              className='w-full border rounded-md p-2 text-sm focus:outline-none focus:ring focus:ring-red-300'
+              rows={4}
+              placeholder='Nhập lý do...'
+            ></textarea>
+          </div>
+
+          <div className='flex justify-end gap-3 pt-4'>
+            <button
+              className='px-4 py-2 rounded-md border text-sm hover:bg-gray-100'
+              onClick={() => setOpenLockModal(false)}
+            >
+              Hủy
+            </button>
+
+            <button
+              onClick={confirmLockUser}
+              className='px-4 py-2 rounded-md text-sm bg-red-600 text-white hover:bg-red-700'
+              disabled={lockUser.isPending}
+            >
+              {lockUser.isPending ? 'Đang xử lý...' : 'Xác nhận khóa'}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

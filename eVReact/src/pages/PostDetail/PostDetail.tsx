@@ -7,7 +7,6 @@ import {
   Car,
   Factory,
   Gauge,
-  Heart,
   HeartPulse,
   History,
   MapPin,
@@ -44,7 +43,6 @@ import PageSkeleton from './components/PageSkeleton'
 import RelatedCard from './components/RelatedCard/RelatedCard'
 import SpecRow from './components/SpecRow'
 
-// --- Skeleton for related grid ---
 function SkeletonGrid() {
   return (
     <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'>
@@ -93,7 +91,6 @@ export default function PostDetail() {
     // placeholderData: keepPreviousData
   })
 
-  // Build specs (memo)
   const specs = useMemo(() => {
     if (!product || !post) return []
     const base = isVehicle(product)
@@ -167,9 +164,23 @@ export default function PostDetail() {
     return base.filter((s) => nonEmpty(s.value) || s.value === 0)
   }, [product, post])
 
-  if (!postQ.data && postQ.isLoading) {
+  if (postQ.isLoading) {
     return <PageSkeleton />
   }
+
+  if (postQ.isError || !post || !product) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-zinc-50 to-white text-zinc-900'>
+        <div className='mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-10'>
+          <div className='rounded-2xl border border-zinc-100 bg-white/90 p-10 text-center shadow-sm'>
+            <h2 className='mb-2 text-xl font-semibold text-zinc-900'>Không tìm thấy tin đăng</h2>
+            <p className='text-sm text-zinc-500'>Tin đăng này có thể đã bị xóa hoặc không tồn tại.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-zinc-50 to-white text-zinc-900'>
       {product && post && (
@@ -205,17 +216,7 @@ export default function PostDetail() {
                   )}
                 </div>
                 <h1 className='line-clamp-2 text-2xl font-bold sm:text-3xl'>{post.title}</h1>
-              </div>
-
-              <div className='flex shrink-0 items-center gap-2'>
-                <button
-                  className='rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-zinc-100'
-                  aria-pressed={false}
-                >
-                  <Heart className='mr-2 inline h-4 w-4' />
-                  Lưu
-                </button>
-              </div>
+              </div>{' '}
             </div>
           </div>
 
@@ -224,7 +225,7 @@ export default function PostDetail() {
             <div className='min-w-0 space-y-6'>
               <Gallery images={product.images} />
 
-              {auctionData ? (
+              {auctionData?.data.data.hasAuction && (
                 <div className='rounded-2xl border border-zinc-100 bg-white/90 p-5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70'>
                   <div className='mb-1 text-xs uppercase tracking-wide text-zinc-500'>Giá bán</div>
                   <div className='mb-3 text-3xl font-extrabold'>{formatCurrencyVND(product.price)}</div>
@@ -244,14 +245,7 @@ export default function PostDetail() {
                       windowText='Theo dữ liệu trong 3 tháng gần nhất'
                     />
                   </div>
-                  {/* <div className='flex gap-2'>
-                  <Button className='flex-1 flex justify-center items-center rounded-xl bg-zinc-900 px-4 py-3 font-medium text-white shadow-sm transition hover:translate-y-[-1px] hover:shadow-md'>
-                    <MessageCircle className='mr-2 inline h-5 w-5' /> Gữi yêu cầu mua
-                  </Button>
-                </div> */}
                 </div>
-              ) : (
-                ''
               )}
 
               {/* Specs */}
@@ -304,12 +298,12 @@ export default function PostDetail() {
 
             {/* Right column */}
             <aside className='space-y-4 lg:sticky lg:top-24'>
-              {auctionData && <AuctionBox product_id={id} auctionData={auctionData} />}
+              {auctionData?.data.data.hasAuction && (
+                <AuctionBox product_id={id} auctionData={auctionData.data.data.auction} />
+              )}
 
               {/* Price & actions */}
-              {auctionData ? (
-                ''
-              ) : (
+              {!auctionData?.data.data.hasAuction && (
                 <div className='rounded-2xl border border-zinc-100 bg-white/90 p-5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70'>
                   <div className='mb-1 text-xs uppercase tracking-wide text-zinc-500'>Giá bán</div>
                   <div className='mb-3 text-3xl font-extrabold'>{formatCurrencyVND(product.price)}</div>
@@ -331,27 +325,6 @@ export default function PostDetail() {
                   </div>
                 </div>
               )}
-              {/* Price & actions */}
-              {/* <div className='rounded-2xl border border-zinc-100 bg-white/90 p-5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70'>
-                <div className='mb-1 text-xs uppercase tracking-wide text-zinc-500'>Giá bán</div>
-                <div className='mb-3 text-3xl font-extrabold'>{formatCurrencyVND(product.price)}</div>
-                <div className='mb-3 flex items-center gap-2 text-sm'>
-                  <MapPin className='h-4 w-4' />
-                  {product.address}
-                </div>
-                <div className='my-3 text-sm text-zinc-500'>
-                  Cập nhật: {new Date(post.updated_at).toLocaleDateString('vi-VN')}
-                </div>
-
-                <div className='mb-4'>
-                  <MarketPriceRange
-                    min={toNumber(post.ai?.min_price)}
-                    max={toNumber(post.ai?.max_price)}
-                    listing={toNumber(product.price)}
-                    windowText='Theo dữ liệu trong 3 tháng gần nhất'
-                  />
-                </div>
-              </div> */}
 
               {/* Seller card */}
               {post.seller && (

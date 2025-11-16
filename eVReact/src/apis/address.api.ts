@@ -11,7 +11,7 @@ export interface Ward {
 }
 
 // Using a free API service for Vietnam addresses
-const API_BASE_URL = 'http://provinces.open-api.vn/api/v2'
+const API_BASE_URL = import.meta.env.VITE_API_ADDRESS_URL
 
 // API Response interfaces
 interface ApiProvince {

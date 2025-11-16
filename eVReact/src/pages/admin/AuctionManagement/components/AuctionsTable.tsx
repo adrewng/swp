@@ -1,6 +1,6 @@
 ''
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import auctionApi from '~/apis/auction.api'
@@ -40,11 +40,11 @@ export default function AuctionsTable(props: PropsType) {
   })
   const qc = useQueryClient()
 
-  const { data: contractData } = useQuery({
-    queryKey: ['contract'],
-    queryFn: contractApi.getAllContract
-  })
-  console.log('contract -', contractData)
+  // const { data: contractData } = useQuery({
+  //   queryKey: ['contract'],
+  //   queryFn: contractApi.getAllContract
+  // })
+  // console.log('contract -', contractData)
 
   // start auction
   const startAuction = useMutation({
@@ -251,9 +251,10 @@ export default function AuctionsTable(props: PropsType) {
                       </button>
                       <button
                         onClick={() => handleStartAuction(auction.id)}
-                        className='rounded-lg bg-red-500 px-3 py-2 text-xs font-medium text-white hover:bg-red-600 transition-colors'
+                        disabled={startAuction.isPending}
+                        className='rounded-lg bg-red-500 px-3 py-2 text-xs font-medium text-white hover:bg-red-600 transition-colors disabled:bg-red-300'
                       >
-                        Bắt Đầu
+                        {startAuction.isPending ? 'Đang bắt đầu...' : 'Bắt Đầu'}
                       </button>
                     </div>
                   )}
@@ -339,9 +340,12 @@ export default function AuctionsTable(props: PropsType) {
 
               <button
                 onClick={() => handleSave(editingAuction.id, duration, isVerify)}
-                className='rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
+                className='rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white 
+             hover:bg-blue-700 transition 
+             disabled:bg-blue-300 disabled:cursor-not-allowed disabled:hover:bg-blue-300'
+                disabled={updateAuction.isPending}
               >
-                Lưu thay đổi
+                {updateAuction.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
             </div>
           </div>
@@ -395,9 +399,10 @@ export default function AuctionsTable(props: PropsType) {
               </button>
               <button
                 onClick={handleSubmitContract}
-                className='rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 transition'
+                disabled={createContract.isPending}
+                className='rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 transition disabled:bg-blue-300'
               >
-                Tạo Hợp Đồng
+                {createContract.isPending ? 'Đang tạo...' : 'Tạo Hợp Đồng'}
               </button>
             </div>
           </div>

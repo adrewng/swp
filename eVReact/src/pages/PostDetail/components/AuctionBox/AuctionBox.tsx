@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { AxiosResponse } from 'axios'
 import { Clock, Gavel, Minus, Plus, Zap } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
@@ -7,7 +6,6 @@ import { io, Socket } from 'socket.io-client'
 import auctionApi from '~/apis/auction.api'
 import { AppContext } from '~/contexts/app.context'
 import type { Auction } from '~/types/auction.type'
-import type { SuccessResponse } from '~/types/util.type'
 import { JoinABidButton } from './JoinABidButton'
 
 const SERVER_URL = import.meta.env.VITE_API_URL
@@ -36,7 +34,7 @@ const Button = ({
 
 interface AuctionBoxProps {
   product_id: string
-  auctionData: AxiosResponse<SuccessResponse<Auction>>
+  auctionData: Auction
 }
 
 export default function AuctionBox({ auctionData }: AuctionBoxProps) {
@@ -54,7 +52,7 @@ export default function AuctionBox({ auctionData }: AuctionBoxProps) {
   const accessToken = localStorage.getItem('access_token')
   const token = accessToken?.replace('Bearer ', '')
 
-  const auctionInfo = auctionData?.data?.data
+  const auctionInfo = auctionData
   const isAuctionEnded = auctionInfo?.status === 'ended' || isEnded
 
   const auctionId = auctionInfo?.id

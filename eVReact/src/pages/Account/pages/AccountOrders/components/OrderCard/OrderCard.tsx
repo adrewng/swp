@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ClipboardList, CreditCard, MessageSquare, Receipt, RefreshCcw, Star, Undo2 } from 'lucide-react'
+import { CreditCard, MessageSquare, Receipt, RefreshCcw, Star } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import feedbackApi from '~/apis/feedback.api'
@@ -210,7 +210,7 @@ export default function OrderCard({ o, onOpen }: { o: Order; onOpen: (o: Order) 
           </>
         )}
 
-        {o.type === 'auction' &&
+        {/* {o.type === 'auction' &&
           (tracking === 'PROCESSING' || tracking === 'VERIFYING' || tracking === 'AUCTION_PROCESSING') && (
             <>
               <button className='rounded-xl border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50'>
@@ -223,7 +223,7 @@ export default function OrderCard({ o, onOpen }: { o: Order; onOpen: (o: Order) 
                 <Undo2 className='mr-2 inline h-4 w-4' /> Hủy yêu cầu
               </button>
             </>
-          )}
+          )} */}
 
         {tracking === 'REFUND' && (
           <button className='rounded-2xl border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50'>

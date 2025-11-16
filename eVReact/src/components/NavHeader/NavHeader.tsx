@@ -373,7 +373,7 @@ export default function NavHeader() {
                     <div className='flex items-center gap-3 mb-3'>
                       <div className='size-12 rounded-full overflow-hidden ring-2 ring-gray-200 flex-shrink-0'>
                         <img
-                          src={currentProfile?.avatar || 'https://picsum.photos/32'}
+                          src={currentProfile?.avatar}
                           alt={currentProfile?.full_name || 'User'}
                           className='size-full object-cover'
                         />
@@ -467,11 +467,7 @@ export default function NavHeader() {
               }
             >
               <div className='size-8 rounded-full overflow-hidden ring-1 ring-zinc-200'>
-                <img
-                  src={profile?.avatar || 'https://picsum.photos/32'}
-                  alt='User'
-                  className='size-full object-cover'
-                />
+                <img src={profile?.avatar} alt='User' className='size-full object-cover' />
               </div>
             </Popover>
           ) : (
