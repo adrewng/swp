@@ -195,11 +195,19 @@ export default function AuctionRequest() {
                 />
                 <RuleItem
                   icon={<Clock className='w-4 h-4' />}
-                  text='Phiên đấu giá mở trong 3–7 ngày theo điều phối của sàn.'
+                  text='Phiên đấu giá mở sau khi bạn đã đem sản phẩm tới kho bãi của chúng tôi'
                 />
                 <RuleItem
                   icon={<FileText className='w-4 h-4' />}
                   text='Hàng hóa phải qua kiểm định trước khi mở phiên.'
+                />
+                <RuleItem
+                  icon={<FileText className='w-4 h-4' />}
+                  text='Trong vòng 20 ngày kể từ ngày tạo đơn nếu bạn không đem xe đến kho bãi đã thảo luận thì chúng tôi sẽ hủy yêu cầu và không hoàn tiền.'
+                />
+                <RuleItem
+                  icon={<FileText className='w-4 h-4' />}
+                  text='Phí dịch vụ này sẽ tương ứng với 0.5% giá sản phẩm của bạn.'
                 />
               </ul>
             </SectionCard>
@@ -217,11 +225,11 @@ export default function AuctionRequest() {
               </details>
               <details className='group rounded-lg border border-gray-200 p-3 open:bg-gray-50 transition-colors mt-2'>
                 <summary className='flex cursor-pointer select-none items-center justify-between text-sm font-medium text-gray-800'>
-                  Có thể đổi giá sau khi gửi yêu cầu không?
+                  Tôi phải gì sau khi gữi yêu cầu thành công?
                   <span className='ml-3 text-gray-400 group-open:rotate-180 transition-transform'>▼</span>
                 </summary>
                 <p className='mt-2 text-sm text-gray-600'>
-                  Bạn có thể liên hệ CSKH để cập nhật trước khi phiên được duyệt mở.
+                  Bạn hãy đợi admin liên hệ để nẳm rõ hơn được quy trình phía sau.
                 </p>
               </details>
             </SectionCard>

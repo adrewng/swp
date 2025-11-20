@@ -37,10 +37,54 @@ export default function MarketPriceRange({
   const clamp = (v: number) => Math.min(domainMax, Math.max(domainMin, v))
   const pct = (v: number) => ((clamp(v) - domainMin) / (domainMax - domainMin)) * 100
 
-  // vị trí %
+  // Tính vị trí % của min, max và listing
   const left = pct(min)
   const width = Math.max(0, pct(max) - pct(min))
   const markerLeft = pct(listing)
+
+  // Mở rộng range fill để marker luôn nằm bên trong (không dính mép)
+  let adjustedLeft = left
+  let adjustedWidth = width
+
+  // Nếu listing nằm trong range [min, max]
+  if (listing >= min && listing <= max) {
+    const distanceToMin = markerLeft - left
+    const distanceToMax = left + width - markerLeft
+
+    // Padding nhỏ (3%) để marker không dính mép
+    const padding = 3
+
+    if (distanceToMax < padding) {
+      // Marker gần mép phải → mở rộng bên phải
+      adjustedWidth = width + padding
+    } else if (distanceToMin < padding) {
+      // Marker gần mép trái → mở rộng bên trái
+      adjustedLeft = Math.max(0, left - padding)
+      adjustedWidth = width + padding
+    } else {
+      // Marker ở giữa → mở rộng nhẹ cả hai bên
+      adjustedLeft = Math.max(0, left - 2)
+      adjustedWidth = width + 4
+    }
+  }
+  // Nếu listing nằm ngoài range nhưng gần (trong vòng 10% của range width)
+  else {
+    const rangeWidth = max - min
+    const deviationFromMax = listing > max ? listing - max : 0
+    const deviationFromMin = listing < min ? min - listing : 0
+    const isNearRange = Math.max(deviationFromMax, deviationFromMin) / rangeWidth <= 0.1
+
+    if (isNearRange) {
+      // Mở rộng range fill để bao marker, nhưng không quá nhiều
+      const padding = 3
+      if (listing > max) {
+        adjustedWidth = width + padding
+      } else {
+        adjustedLeft = Math.max(0, left - padding)
+        adjustedWidth = width + padding
+      }
+    }
+  }
 
   return (
     <div className='rounded-2xl bg-zinc-100 p-4'>
@@ -59,7 +103,7 @@ export default function MarketPriceRange({
         {/* range fill (min → max) */}
         <div
           className='absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-blue-600'
-          style={{ left: `${left}%`, width: `${width}%` }}
+          style={{ left: `${adjustedLeft}%`, width: `${adjustedWidth}%` }}
           aria-hidden
         />
         {/* listing marker */}

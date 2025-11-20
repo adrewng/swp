@@ -20,10 +20,11 @@ interface JoinABidButtonProps {
   deposit?: string
   auction_id?: number
   socket?: Socket | null
+  disabled?: boolean
 }
 
 export function JoinABidButton(props: JoinABidButtonProps) {
-  const { deposit, auction_id, socket } = props
+  const { deposit, auction_id, socket, disabled } = props
   const [agree, setAgree] = useState(false)
   const [openDeposit, setOpenDeposit] = useState(false)
 
@@ -36,7 +37,7 @@ export function JoinABidButton(props: JoinABidButtonProps) {
     <div>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <button className='flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 font-medium text-white shadow-sm transition hover:translate-y-[-1px] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0'>
+          <button disabled={disabled}  className='flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 font-medium text-white shadow-sm transition hover:translate-y-[-1px] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0'>
             <Plus className='h-5 w-5' />
             Tham gia đấu giá
           </button>

@@ -164,9 +164,19 @@ const LoginPage = () => {
       <Dialog open={openModal} onOpenChange={setOpenModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tài khoản bị khóa</DialogTitle>
+            <DialogTitle>Thông báo khóa tài khoản</DialogTitle>
           </DialogHeader>
-          <p className='mt-2'>{modalReason}</p>
+
+          <div className='mt-2 space-y-2'>
+            <p>Tài khoản của bạn hiện đã bị khóa bởi quản trị viên. Dưới đây là lý do cụ thể:</p>
+
+            <div className='rounded-md bg-red-50 p-3 text-red-700 border border-red-200'>{modalReason}</div>
+
+            <p className='text-sm text-muted-foreground'>
+              Nếu bạn cho rằng đây là sự nhầm lẫn hoặc cần được hỗ trợ thêm, vui lòng liên hệ bộ phận quản trị.
+            </p>
+          </div>
+
           <div className='mt-4 text-right'>
             <button
               onClick={() => setOpenModal(false)}

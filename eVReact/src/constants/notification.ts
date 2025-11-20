@@ -38,6 +38,7 @@ export const NOTIFICATION_TYPES = [
   'dealing_success',
   'dealing_fail',
   'payment_expired',
+  'refund_failed',
   'message',
   'system'
 ] as const
@@ -73,5 +74,6 @@ export const notificationConfig = {
   dealing_success: { icon: CheckCircle, tone: 'success' },
   payment_expired: { icon: Clock, tone: 'warning' },
   message: { icon: MessageSquare, tone: 'info' },
-  system: { icon: Bell, tone: 'info' }
+  system: { icon: Bell, tone: 'info' },
+  refund_failed: { icon: XCircle, tone: 'danger' }
 } satisfies Record<NotificationType, { icon: LucideIcon; tone: ToneNotification }>

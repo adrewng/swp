@@ -164,7 +164,6 @@ class Http {
           clearLS()
           this.accessToken = ''
           this.refreshToken = ''
-          toast.error(error.response?.data.data?.message || error.response?.data.message)
         }
         return Promise.reject(error)
       }
