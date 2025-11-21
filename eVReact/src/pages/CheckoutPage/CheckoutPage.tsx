@@ -1,7 +1,7 @@
 import { RadioGroup } from '@headlessui/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Banknote, CheckCircle2, Plus, Wallet } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Plus, Wallet } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -130,7 +130,7 @@ export default function CheckoutPage() {
               )}
             </RadioGroup.Option>
 
-            <RadioGroup.Option value='bank'>
+            {/* <RadioGroup.Option value='bank'>
               {({ checked }) => (
                 <motion.div
                   whileHover={{ scale: 1.02 }}
@@ -145,7 +145,7 @@ export default function CheckoutPage() {
                   {checked && <CheckCircle2 className='text-black w-5 h-5' />}
                 </motion.div>
               )}
-            </RadioGroup.Option>
+            </RadioGroup.Option> */}
           </RadioGroup>
         </div>
 

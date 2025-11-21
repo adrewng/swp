@@ -138,14 +138,16 @@ export function getVietnamDate(): string {
  * Parse MySQL DATETIME (no timezone) as Vietnam time (GMT+7)
  * Fix countdown lệch giờ
  */
-export function parseVietnamDatetime(dateStr: string): number {
-  // Format DB: "2025-11-20 10:00:00"
-  // Tách ra thành "2025-11-20T10:00:00"
-  const isoLike = dateStr.replace(" ", "T");
+export function parseVietnamDatetime(dateStr: any): number {
+    if (!dateStr) return 0;
 
-  const d = new Date(isoLike);
+    // ⭐ Giữ nguyên logic của bạn
+    // Chỉ thêm ép kiểu cho chắc chắn để .replace không bị lỗi
+    const s = String(dateStr);
 
-  // d.getTimezoneOffset() = số phút lệch giữa server và UTC
-  // Vì DB đang lưu giờ VN, ta ép nó về GMT+7 thủ công
-  return d.getTime() - d.getTimezoneOffset() * 60000;
+    const isoLike = s.replace(" ", "T");
+
+    const d = new Date(isoLike);
+
+    return d.getTime() - (d.getTimezoneOffset() * 60000);
 }

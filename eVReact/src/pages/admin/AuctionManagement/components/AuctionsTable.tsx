@@ -30,11 +30,13 @@ export default function AuctionsTable(props: PropsType) {
   const [openModal, setOpenModal] = useState<boolean>(false)
   const [form, setForm] = useState<FormContract>({
     seller_id: 0,
+    seller_name: '',
     buyer_id: 0,
+    buyer_name: '',
     product_id: 0,
+    product_name: '',
     deposit_amount: 0,
     vehicle_price: 0,
-    commission_percent: 5,
     dispute_city: 'Ho Chi Minh',
     status: 'pending'
   })
@@ -87,11 +89,13 @@ export default function AuctionsTable(props: PropsType) {
     // Điền sẵn form từ auction
     setForm({
       seller_id: auction.seller_id || 0,
+      seller_name: auction.seller_name || '',
       buyer_id: auction.winner_id || 0,
+      buyer_name: auction.winner_name || '',
       product_id: auction.product_id || 0,
+      product_name: auction.title || '',
       deposit_amount: Number(auction.deposit) || 0,
       vehicle_price: Number(auction.winning_price) || 0,
-      commission_percent: 5,
       dispute_city: 'Ho Chi Minh',
       status: 'pending'
     })
@@ -222,13 +226,31 @@ export default function AuctionsTable(props: PropsType) {
 
                           {!auction.has_report && (
                             <>
-                              {auction.contract_status !== 'pending' && (
+                              {auction.winner_id === null ? (
                                 <button
-                                  onClick={() => handleCreateContract(auction)}
-                                  className='rounded-lg bg-green-500 px-3 py-2 text-xs font-medium text-white hover:bg-green-600 transition-colors'
+                                  disabled
+                                  className='rounded-lg bg-gray-400 px-3 py-2 text-xs font-medium text-white cursor-not-allowed'
                                 >
-                                  Tạo hợp đồng
+                                  Không có ai cọc phiên đấu giá
                                 </button>
+                              ) : (
+                                <>
+                                  {auction.contract_status !== 'pending' && (
+                                    <button
+                                      onClick={() => handleCreateContract(auction)}
+                                      className='rounded-lg bg-green-500 px-3 py-2 text-xs font-medium text-white hover:bg-green-600 transition-colors'
+                                    >
+                                      Tạo hợp đồng
+                                    </button>
+                                  )}
+
+                                  {/* <button
+                                    onClick={() => setOpenModal(true)}
+                                    className='rounded-lg bg-red-500 px-3 py-2 text-xs font-medium text-white hover:bg-red-600 transition-colors'
+                                  >
+                                    Báo cáo
+                                  </button> */}
+                                </>
                               )}
                               <button
                                 onClick={() => setOpenModal(true)}
@@ -278,7 +300,7 @@ export default function AuctionsTable(props: PropsType) {
                       </div>
                       <div>
                         <p className='text-xs font-semibold uppercase text-slate-600'>Người Bán</p>
-                        <p className='mt-1 text-sm text-slate-900'>ID {auction.seller_id}</p>
+                        <p className='mt-1 text-sm text-slate-900'>{auction.seller_name}</p>
                       </div>
                       {auction.winning_price && (
                         <div>

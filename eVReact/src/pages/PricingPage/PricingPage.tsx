@@ -45,7 +45,7 @@ export default function PricingPage() {
         {/* ===== HEADER ===== */}
         <section className='text-center mb-20'>
           <h1 className='text-5xl font-semibold tracking-tight text-neutral-900'>
-            Simple, Transparent <span className='text-black'>Pricing</span>
+            Đơn giản, Minh bạch <span className='text-black'>Gói giá</span>
           </h1>
           <p className='mt-4 text-lg text-neutral-500 max-w-2xl mx-auto'>
             Chọn gói đăng tin phù hợp để lan tỏa thông tin xe điện và pin của bạn một cách hiệu quả nhất.
@@ -60,7 +60,7 @@ export default function PricingPage() {
                 type === 'vehicle' ? 'bg-black text-white shadow-sm' : 'text-neutral-600 hover:text-black'
               }`}
             >
-              Vehicle
+              Xe
             </button>
             <button
               onClick={() => setType('battery')}
@@ -68,7 +68,7 @@ export default function PricingPage() {
                 type === 'battery' ? 'bg-black text-white shadow-sm' : 'text-neutral-600 hover:text-black'
               }`}
             >
-              Battery
+              Pin
             </button>
           </div>
         </div>

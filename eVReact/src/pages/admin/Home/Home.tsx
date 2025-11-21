@@ -66,13 +66,13 @@ export default function Home() {
     ...item,
     value: parseFloat(((item.posts / totalPosts) * 100).toFixed(1)),
     color:
-      item.name === 'Electric Car'
+      item.name === 'Xe Điện'
         ? '#3b82f6'
-        : item.name === 'Electric Motorcycle'
+        : item.name === 'Xe Máy Điện'
           ? '#10b981'
-          : item.name === 'Car Battery'
+          : item.name === 'Pin Xe Điện'
             ? '#f59e0b'
-            : item.name === 'Motorcycle Battery'
+            : item.name === 'Pin Xe Máy Điện'
               ? '#ef4444'
               : '#6b7280'
   }))
@@ -148,8 +148,7 @@ export default function Home() {
                 <LineChart data={dashboard?.revenueByMonth}>
                   <CartesianGrid strokeDasharray='3 3' stroke='#e5e7eb' />
                   <XAxis dataKey='month' stroke='#6b7280' />
-                  {/* <YAxis stroke='#6b7280' /> */}
-                  //... (Bỏ qua dòng // Trong Card Revenue Trend)
+
                   <YAxis
                     stroke='#6b7280'
                     tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}

@@ -174,7 +174,7 @@ export function PackageForm({ editingPackage: editingPackage, onClose }: Package
               name='feature'
               value={formData.feature}
               onChange={handleChange}
-              placeholder='Ví dụ: Đăng bài và đẩy tin'
+              placeholder='Ví dụ: Đăng bài...'
               rows={2}
               required
             />

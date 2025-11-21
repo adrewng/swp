@@ -1,10 +1,12 @@
 export interface FormContract {
   seller_id: number
+  seller_name: string
   buyer_id: number
+  buyer_name: string
   product_id: number
+  product_name: string
   deposit_amount: number
   vehicle_price: number
-  commission_percent: number
   dispute_city: string
   status: string
 }

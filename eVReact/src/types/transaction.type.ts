@@ -35,6 +35,7 @@ export interface TransactionAdmin {
   service_id: number
   product_id: number
   buyer_id: number
+  full_name: string
   created_at: string
   code: string
   payment_method: string

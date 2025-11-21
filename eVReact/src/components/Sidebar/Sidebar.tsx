@@ -114,7 +114,7 @@ export default function Sidebar() {
           className='flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200 font-medium'
         >
           <LogOutIcon size={18} /> {/* bạn có thể dùng icon thích hợp, ví dụ từ lucide-react */}
-          <span className='ml-2'>Logout</span>
+          <span className='ml-2'>Đăng xuất</span>
         </button>
       </div>
     </div>

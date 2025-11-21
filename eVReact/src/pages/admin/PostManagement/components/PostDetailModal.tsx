@@ -1,6 +1,7 @@
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from '~/components/ui/dialog'
 import type { PostType } from '~/types/post.type'
+import { formatUTCDateString } from '~/utils/util'
 
 export default function PostDetailModal({
   open,
@@ -66,8 +67,8 @@ export default function PostDetailModal({
 
           {/* Dates */}
           <div className='text-xs text-gray-500 mt-4'>
-            <p>Ngày tạo: {formatDate(post.created_at)}</p>
-            <p>Ngày cập nhật: {formatDate(post.updated_at)}</p>
+            <p>Ngày tạo: {formatUTCDateString(post.created_at)}</p>
+            <p>Ngày cập nhật: {formatUTCDateString(post.updated_at)}</p>
           </div>
         </div>
 
@@ -94,6 +95,6 @@ function Info({ label, value, valueClass = '' }: { label: string; value: any; va
   )
 }
 
-function formatDate(date: string) {
-  return new Date(date).toLocaleString('vi-VN')
-}
+// function formatDate(date: string) {
+//   return new Date(date).toLocaleString('vi-VN')
+// }

@@ -86,7 +86,7 @@ export default function PostTable(props: Props) {
                     <td className='py-3 px-4 whitespace-nowrap'>{p.product.model}</td>
 
                     {/* Định dạng giá tiền tệ VND và căn phải */}
-                    <td className='py-3 px-4 whitespace-nowrap font-semibold text-gray-900 text-right'>
+                    <td className='py-3 px-4 whitespace-nowrap font-semibold text-gray-900 text-center'>
                       {Number(p.product.price || 0).toLocaleString('vi-VN')}₫
                     </td>
 
@@ -96,14 +96,14 @@ export default function PostTable(props: Props) {
                     </td>
 
                     {/* Trạng thái */}
+
                     <td className='py-3 px-4 whitespace-nowrap'>
-                      <td className='py-3 px-4 whitespace-nowrap'>
-                        {p.status === 'pending' && <Badge className='bg-yellow-100 text-yellow-700'>Đang chờ</Badge>}
-                        {p.status === 'approved' && <Badge className='bg-green-100 text-green-700'>Đã duyệt</Badge>}
-                        {p.status === 'rejected' && <Badge className='bg-red-100 text-red-700'>Đã từ chối</Badge>}
-                        {p.status === 'banned' && <Badge className='bg-gray-200 text-gray-800'>Bị cấm</Badge>}
-                        {p.status === 'sold' && <Badge className='bg-blue-100 text-blue-700'>Đã bán</Badge>}
-                      </td>
+                      {p.status === 'pending' && <Badge className='bg-yellow-100 text-yellow-700'>Đang chờ</Badge>}
+                      {p.status === 'approved' && <Badge className='bg-green-100 text-green-700'>Đã duyệt</Badge>}
+                      {p.status === 'rejected' && <Badge className='bg-red-100 text-red-700'>Đã từ chối</Badge>}
+                      {p.status === 'banned' && <Badge className='bg-gray-200 text-gray-800'>Bị cấm</Badge>}
+                      {p.status === 'sold' && <Badge className='bg-blue-100 text-blue-700'>Đã bán</Badge>}
+                      {p.status === 'auctioned' && <Badge className='bg-purple-100 text-purple-700'>Đã đấu giá</Badge>}
                     </td>
 
                     {/* Ưu tiên */}

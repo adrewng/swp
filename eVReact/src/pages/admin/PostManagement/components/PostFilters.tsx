@@ -16,11 +16,17 @@ import { useMutation } from '@tanstack/react-query'
 import serviceApi from '~/apis/service.api'
 import { toast } from 'react-toastify'
 
+// const filters = [
+//   { label: 'All', link: '' },
+//   { label: 'Approved', link: 'approved' },
+//   { label: 'Pending', link: 'pending' },
+//   { label: 'Rejected', link: 'rejected' }
+// ]
 const filters = [
-  { label: 'All', link: '' },
-  { label: 'Approved', link: 'approved' },
-  { label: 'Pending', link: 'pending' },
-  { label: 'Rejected', link: 'rejected' }
+  { label: 'Tất cả', link: '' },
+  { label: 'Đã duyệt', link: 'approved' },
+  { label: 'Đang chờ', link: 'pending' },
+  { label: 'Đã từ chối', link: 'rejected' }
 ]
 
 const years = [2025, 2024, 2023, 2022]
@@ -40,11 +46,21 @@ export default function PostFilters(props: Props) {
   const { status } = queryConfig
   const navigate = useNavigate()
 
-  const isActiveStatus = (sortByStatus: string) => {
-    if (sortByStatus === 'All') {
-      return status === '' || !status
+  // const isActiveStatus = (sortByStatus: string) => {
+  //   if (sortByStatus === 'All') {
+  //     return status === '' || !status
+  //   }
+  //   return status === sortByStatus.toLowerCase()
+  // }
+  const isActiveStatus = (label: string) => {
+    const map: Record<string, string> = {
+      'Tất cả': '',
+      'Đã duyệt': 'approved',
+      'Đang chờ': 'pending',
+      'Đã từ chối': 'rejected'
     }
-    return status === sortByStatus.toLowerCase()
+
+    return (status || '') === map[label]
   }
 
   const handleChangeSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,7 +181,7 @@ export default function PostFilters(props: Props) {
       <div className='flex items-center gap-3'>
         <div className='w-48'>
           <form onSubmit={handleSubmitSearch}>
-            <Input placeholder='Search posts...' className='bg-white' onChange={handleChangeSearch} value={search} />
+            <Input placeholder='Tìm tin...' className='bg-white' onChange={handleChangeSearch} value={search} />
           </form>
         </div>
         <DropdownMenu>
